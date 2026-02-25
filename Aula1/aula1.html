@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aula 01: Android Studio e Primeiro Projeto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Warm Neutrals with Soft Teal Accents (Nature/Android inspired but muted) -->
+    <!-- Application Structure Plan: A Dashboard-style Learning Module. 
+         1. Hero Section: Sets the context (Class info, Teacher) and tracks global progress.
+         2. Tabbed Navigation: Splits the dense content into logical processing chunks (Planejamento, Teoria, Laboratório, Exercícios).
+         3. Dynamic Content Areas:
+            - Planejamento: Visualizes learning goals and device coverage data using Chart.js.
+            - Teoria: Uses interactive cards and accordions to explain concepts without wall-of-text.
+            - Laboratório: An interactive "File Tree" explorer to understand project anatomy and a code viewer with context.
+            - Exercícios: Filterable list of tasks to prevent cognitive overload.
+            - Checklist & Desafio: A gamified ending to validate learning.
+         Rationale: This structure moves from abstract (theory) to concrete (lab) to application (exercises), allowing the student to pace themselves. -->
+    <!-- Visualization & Content Choices:
+         1. Device Coverage Chart (Pie): Visualizes the "90% coverage" rule mentioned in Boas Práticas -> Goal: Inform/Persuade.
+         2. Time Distribution (Doughnut): Estimates time spent on Theory vs Practice based on the lesson plan -> Goal: Inform.
+         3. File Anatomy Explorer (HTML/CSS/JS): Interactive tree to explore the Project structure -> Goal: Organize/Relations.
+         4. Code Contextualizer (HTML/JS): Highlighting key lines in the provided Kotlin code -> Goal: Inform/Teach.
+         5. Progress Tracker (HTML/JS): Linked to the checklist -> Goal: Engagement/Gamification.
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f4; /* Stone 100 - Warm Neutral */
+            color: #292524; /* Stone 800 */
+        }
+        
+        /* Chart Container Styling - Mandatory */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e7e5e4;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a8a29e;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #78716c;
+        }
+
+        .tab-active {
+            border-bottom: 3px solid #0d9488; /* Teal 600 */
+            color: #0f766e; /* Teal 700 */
+            font-weight: 600;
+        }
+        .tab-inactive {
+            border-bottom: 3px solid transparent;
+            color: #78716c; /* Stone 500 */
+        }
+        .tab-inactive:hover {
+            color: #44403c; /* Stone 700 */
+            border-bottom: 3px solid #d6d3d1;
+        }
+
+        .code-block {
+            background-color: #1e1e1e; /* VS Code dark like */
+            color: #d4d4d4;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .keyword { color: #569cd6; }
+        .string { color: #ce9178; }
+        .comment { color: #6a9955; }
+        .type { color: #4ec9b0; }
+        .function { color: #dcdcaa; }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header / Hero Section -->
+    <header class="bg-white shadow-sm border-b border-stone-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="bg-teal-100 text-teal-800 text-xs font-semibold px-2.5 py-0.5 rounded">Aula 01</span>
+                        <span class="text-stone-500 text-sm">Fatec Garça</span>
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-stone-800">Instalação e Configuração do Android Studio</h1>
+                    <p class="text-stone-600 mt-1">Professor: <span class="font-semibold">Ferdinando Paes</span> | Duração: 2 horas</p>
+                </div>
+                
+                <!-- Progress Tracker -->
+                <div class="w-full md:w-64 bg-stone-100 p-3 rounded-lg border border-stone-200">
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="font-medium text-stone-600">Progresso da Aula</span>
+                        <span class="font-bold text-teal-600" id="progress-text">0%</span>
+                    </div>
+                    <div class="w-full bg-stone-300 rounded-full h-2.5">
+                        <div id="progress-bar" class="bg-teal-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation -->
+    <nav class="bg-white sticky top-0 z-10 border-b border-stone-200 shadow-sm overflow-x-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-8" id="nav-tabs">
+                <!-- Tabs injected by JS -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <div id="content-area" class="fade-in">
+            <!-- Content injected by JS -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-stone-800 text-stone-300 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-white text-lg font-semibold mb-2">Bibliografia & Referências</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li>📚 <strong>Deitel, H. & Deitel, P.</strong> - Android for Programmers (Ciclo de Vida)</li>
+                        <li>📚 <strong>Lecheta, Ricardo</strong> - Google Android (Gradle & Estrutura)</li>
+                        <li>🌐 <strong>developer.android.com</strong> - Documentação Oficial</li>
+                    </ul>
+                </div>
+                <div class="flex flex-col justify-end items-start md:items-end">
+                    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="text-teal-400 hover:text-teal-300 transition-colors">
+                        ⬆ Voltar ao topo
+                    </button>
+                    <p class="text-xs text-stone-500 mt-2">Gerado para suporte à aula de Programação de Dispositivos Móveis.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        // --- DATA STORE ---
+        const lessonData = {
+            objectives: [
+                "Configurar o ambiente de desenvolvimento (IDE e SDK).",
+                "Identificar a estrutura de diretórios de um projeto Android.",
+                "Executar o primeiro 'Hello World' em um emulador ou dispositivo físico.",
+                "Compreender o papel do Gradle no ecossistema Android."
+            ],
+            commonErrors: [
+                { title: "Versão do Java", desc: "Tentar usar JDK externo incompatível. Use o JDK embutido no Android Studio." },
+                { title: "Espaços no Caminho", desc: "Instalar o SDK em pastas com espaços (ex: 'C:\\Usuário Teste'). Isso quebra o Gradle." },
+                { title: "SDK Incompleto", desc: "Não baixar as 'Build Tools', gerando erro 'SDK not found'." }
+            ],
+            projectAnatomy: [
+                { 
+                    file: "AndroidManifest.xml", 
+                    path: "app/manifests/", 
+                    desc: "O 'RG' do app. Define permissões, ícone, nome e quais Activities existem.",
+                    icon: "🪪"
+                },
+                { 
+                    file: "MainActivity.kt", 
+                    path: "app/java/br.fatec...", 
+                    desc: "O cérebro da tela. Onde a lógica Kotlin acontece e controlamos o comportamento.",
+                    icon: "🧠"
+                },
+                { 
+                    file: "activity_main.xml", 
+                    path: "app/res/layout/", 
+                    desc: "O rosto da tela. Onde desenhamos botões, textos e imagens.",
+                    icon: "🎨"
+                },
+                { 
+                    file: "build.gradle.kts", 
+                    path: "Gradle Scripts (Module: app)", 
+                    desc: "O gerente de construção. Define versões de bibliotecas e configurações de compilação.",
+                    icon: "🐘"
+                }
+            ],
+            exercises: {
+                basic: [
+                    "Altere o texto do arquivo `strings.xml` e faça ele aparecer na tela.",
+                    "Mude a cor de fundo da sua Activity para `#F0F0F0`.",
+                    "Adicione um segundo `TextView` no layout com o seu nome.",
+                    "Identifique no `AndroidManifest.xml` onde está a Activity principal.",
+                    "Crie um novo dispositivo virtual (AVD) com resolução diferente."
+                ],
+                intermediate: [
+                    "Altere o ícone do aplicativo (Image Asset) para um ícone nativo.",
+                    "Mude o `targetSdk` no Gradle para ver o que acontece.",
+                    "Use `Log.d` no `onCreate` e visualize no Logcat.",
+                    "Crie um botão no XML e use `setOnClickListener` no Kotlin.",
+                    "Adicione um `ImageView` e centralize-o no modo Design."
+                ],
+                advanced: [
+                    "Análise de Erro: Quebre o XML de propósito e leia o erro do Gradle.",
+                    "Multi-idioma: Crie um `strings.xml` (en) e teste mudando o idioma do celular."
+                ]
+            },
+            checklist: [
+                { id: "c1", text: "Instalei o Android Studio e SDK sem erros de caminho." },
+                { id: "c2", text: "Criei um emulador (AVD) ou configurei celular físico." },
+                { id: "c3", text: "Entendi a diferença entre Activity.kt e Layout.xml." },
+                { id: "c4", text: "Usei o Logcat para monitorar mensagens." },
+                { id: "c5", text: "O app rodou exibindo o texto customizado." }
+            ]
+        };
+
+        // --- STATE MANAGEMENT ---
+        let state = {
+            currentTab: 'planning', // planning, theory, lab, exercises, challenge
+            checklistProgress: 0,
+            checkedItems: new Set()
+        };
+
+        // --- RENDER FUNCTIONS ---
+
+        function init() {
+            renderTabs();
+            renderContent();
+            updateProgress();
+        }
+
+        function switchTab(tabId) {
+            state.currentTab = tabId;
+            renderTabs();
+            renderContent();
+            window.scrollTo(0, 0);
+        }
+
+        function renderTabs() {
+            const tabs = [
+                { id: 'planning', label: '🎯 Planejamento' },
+                { id: 'theory', label: '📚 Conceitos' },
+                { id: 'lab', label: '🛠 Laboratório' },
+                { id: 'exercises', label: '🧠 Exercícios' },
+                { id: 'challenge', label: '🚀 Desafio & Checklist' }
+            ];
+
+            const navContainer = document.getElementById('nav-tabs');
+            navContainer.innerHTML = tabs.map(tab => `
+                <button 
+                    onclick="switchTab('${tab.id}')"
+                    class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${state.currentTab === tab.id ? 'tab-active' : 'tab-inactive'}"
+                >
+                    ${tab.label}
+                </button>
+            `).join('');
+        }
+
+        function renderContent() {
+            const container = document.getElementById('content-area');
+            container.innerHTML = ''; // Clear current content
+            container.classList.remove('fade-in');
+            void container.offsetWidth; // Trigger reflow for animation
+            container.classList.add('fade-in');
+
+            switch (state.currentTab) {
+                case 'planning':
+                    container.innerHTML = renderPlanningSection();
+                    initPlanningCharts();
+                    break;
+                case 'theory':
+                    container.innerHTML = renderTheorySection();
+                    break;
+                case 'lab':
+                    container.innerHTML = renderLabSection();
+                    break;
+                case 'exercises':
+                    container.innerHTML = renderExercisesSection();
+                    break;
+                case 'challenge':
+                    container.innerHTML = renderChallengeSection();
+                    initChecklistListeners();
+                    break;
+            }
+        }
+
+        // --- SECTION RENDERERS ---
+
+        function renderPlanningSection() {
+            return `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                        <h2 class="text-xl font-bold text-stone-800 mb-4">Objetivos da Aula</h2>
+                        <p class="text-stone-600 mb-4">Nesta primeira aula, focaremos na infraestrutura necessária para desenvolver apps profissionais.</p>
+                        <ul class="space-y-3">
+                            ${lessonData.objectives.map(obj => `
+                                <li class="flex items-start gap-3">
+                                    <span class="text-teal-600 mt-1">✓</span>
+                                    <span class="text-stone-700 leading-relaxed">${obj}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200 flex flex-col items-center justify-center">
+                        <h3 class="text-lg font-semibold text-stone-800 mb-4">Cobertura de Dispositivos (API Target)</h3>
+                        <p class="text-sm text-stone-500 mb-2 text-center">Boas Práticas: Escolher uma API que cubra 90% do mercado.</p>
+                        <div class="chart-container">
+                            <canvas id="marketChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-stone-100 p-6 rounded-lg border border-stone-200">
+                    <h3 class="text-lg font-bold text-stone-800 mb-2">Por que Android Studio?</h3>
+                    <p class="text-stone-700">Diferente de editores simples, ele gerencia o ciclo completo: do código Kotlin à instalação no hardware via ADB (Android Debug Bridge).</p>
+                </div>
+            `;
+        }
+
+        function renderTheorySection() {
+            return `
+                <div class="space-y-8">
+                    <!-- Intro -->
+                    <div class="max-w-3xl">
+                        <h2 class="text-2xl font-bold text-stone-800 mb-2">Fundamentação Teórica</h2>
+                        <p class="text-stone-600">Antes de codificar, é preciso entender as peças desse quebra-cabeça. O desenvolvimento Android moderno é baseado em componentes modulares.</p>
+                    </div>
+
+                    <!-- Concepts Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-teal-500 hover:shadow-md transition-shadow">
+                            <div class="text-4xl mb-3">📱</div>
+                            <h3 class="text-xl font-bold text-stone-800 mb-2">Activity</h3>
+                            <p class="text-sm text-stone-600">É a tela com a qual o usuário interage. Todo app tem pelo menos uma (MainActivity). É como uma "página" web, mas com ciclo de vida complexo.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-orange-500 hover:shadow-md transition-shadow">
+                            <div class="text-4xl mb-3">🐘</div>
+                            <h3 class="text-xl font-bold text-stone-800 mb-2">Gradle</h3>
+                            <p class="text-sm text-stone-600">Sistema de automação. Ele baixa bibliotecas, compila o Kotlin e o XML, e gera o .APK instalável. Sem ele, nada roda.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-indigo-500 hover:shadow-md transition-shadow">
+                            <div class="text-4xl mb-3">🎨</div>
+                            <h3 class="text-xl font-bold text-stone-800 mb-2">Layout XML</h3>
+                            <p class="text-sm text-stone-600">A estrutura visual estática. Define onde ficam botões e textos. O Kotlin "infla" (dá vida) a este arquivo na tela.</p>
+                        </div>
+                    </div>
+
+                    <!-- Common Errors Alert -->
+                    <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-r-lg">
+                        <h3 class="text-lg font-bold text-red-800 mb-4">⚠️ Erros Comuns de Iniciantes</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            ${lessonData.commonErrors.map(err => `
+                                <div>
+                                    <h4 class="font-bold text-red-700 text-sm">${err.title}</h4>
+                                    <p class="text-xs text-red-600 mt-1">${err.desc}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- Best Practices -->
+                    <div class="bg-blue-50 p-6 rounded-lg border border-blue-100">
+                         <h3 class="text-lg font-bold text-blue-800 mb-2">💡 Boas Práticas</h3>
+                         <ul class="list-disc list-inside text-blue-900 space-y-2 text-sm">
+                            <li><strong>Nomenclatura de Pacote:</strong> Use reverso do domínio (ex: <code>br.gov.fatec.meuapp</code>) para evitar conflitos na Play Store.</li>
+                            <li><strong>API Level:</strong> Não foque apenas na última versão. Garanta compatibilidade.</li>
+                         </ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLabSection() {
+            return `
+                <div class="space-y-10">
+                    <div class="border-b border-stone-200 pb-4">
+                        <h2 class="text-2xl font-bold text-stone-800">Laboratório Prático</h2>
+                        <p class="text-stone-600 mt-2">Cenário: Você foi contratado por uma startup de logística ("LogisticsTracker") para criar o protótipo inicial.</p>
+                    </div>
+
+                    <!-- Step 1 & 2: Setup -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                            <div class="flex items-center gap-3 mb-4">
+                                <span class="bg-stone-800 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">1</span>
+                                <h3 class="text-lg font-bold">Configuração do SDK</h3>
+                            </div>
+                            <ul class="text-sm text-stone-700 space-y-2 ml-11 list-disc">
+                                <li>Abra <strong>Settings > Languages & Frameworks > Android SDK</strong>.</li>
+                                <li>Marque a última versão estável em <strong>SDK Platforms</strong>.</li>
+                                <li>Instale <strong>Build-Tools</strong> e <strong>Emulator</strong> em SDK Tools.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-200">
+                            <div class="flex items-center gap-3 mb-4">
+                                <span class="bg-stone-800 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">2</span>
+                                <h3 class="text-lg font-bold">Criando o Projeto</h3>
+                            </div>
+                            <ul class="text-sm text-stone-700 space-y-2 ml-11 list-disc">
+                                <li>Template: <strong>Empty Views Activity</strong>.</li>
+                                <li>Name: <code>LogisticsTracker</code></li>
+                                <li>Package: <code>br.fatec.garca.logistics</code></li>
+                                <li>Min SDK: <strong>API 26 (Android 8.0)</strong>.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Anatomy Explorer -->
+                    <div>
+                        <h3 class="text-xl font-bold text-stone-800 mb-4">Anatomia do Projeto</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                ${lessonData.projectAnatomy.map(item => `
+                                    <div class="group p-4 bg-white border border-stone-200 rounded-lg hover:border-teal-500 cursor-pointer transition-all" onclick="alert('${item.desc}')">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-2xl group-hover:scale-110 transition-transform">${item.icon}</span>
+                                            <div>
+                                                <h4 class="font-bold text-stone-800 text-sm">${item.file}</h4>
+                                                <p class="text-xs text-stone-500 font-mono">${item.path}</p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 text-xs text-stone-600 group-hover:text-teal-700">
+                                            ${item.desc}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            
+                            <!-- Code Viewer -->
+                            <div class="bg-stone-900 rounded-lg p-4 overflow-x-auto shadow-inner border border-stone-700">
+                                <div class="flex items-center justify-between mb-2 pb-2 border-b border-stone-700">
+                                    <span class="text-stone-400 text-xs font-mono">MainActivity.kt</span>
+                                    <span class="text-teal-500 text-xs">Kotlin</span>
+                                </div>
+                                <pre class="text-sm font-mono text-stone-300">
+<span class="keyword">package</span> br.fatec.garca.logistics
+
+<span class="keyword">import</span> androidx.appcompat.app.AppCompatActivity
+<span class="keyword">import</span> android.os.Bundle
+<span class="keyword">import</span> android.widget.TextView
+
+<span class="keyword">class</span> <span class="type">MainActivity</span> : AppCompatActivity() {
+    <span class="comment">// Ponto de entrada (Main)</span>
+    <span class="keyword">override fun</span> <span class="function">onCreate</span>(savedInstanceState: Bundle?) {
+        <span class="keyword">super</span>.onCreate(savedInstanceState)
+        
+        <span class="comment">// Infla o XML na tela</span>
+        <span class="function">setContentView</span>(R.layout.activity_main)
+
+        <span class="comment">// Lógica dinâmica</span>
+        <span class="keyword">val</span> tvStatus = <span class="function">findViewById</span>&lt;TextView&gt;(R.id.textViewStatus)
+        tvStatus.text = <span class="string">"Sistema de Rastreio Ativo"</span>
+    }
+}
+                                </pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderExercisesSection() {
+            return `
+                <div class="max-w-4xl mx-auto">
+                    <h2 class="text-2xl font-bold text-stone-800 mb-6">Exercícios de Fixação</h2>
+                    <p class="text-stone-600 mb-8">Pratique o que aprendeu. Tente resolver no Android Studio antes de ver dicas.</p>
+
+                    <div class="space-y-8">
+                        <!-- Basic -->
+                        <div>
+                            <h3 class="text-lg font-bold text-teal-700 border-b border-teal-200 pb-2 mb-4">🟢 Nível Básico</h3>
+                            <ul class="grid grid-cols-1 gap-3">
+                                ${lessonData.exercises.basic.map((ex, i) => `
+                                    <li class="bg-white p-4 rounded border border-stone-200 shadow-sm flex gap-3">
+                                        <span class="font-bold text-stone-400">${i+1}.</span>
+                                        <span>${ex}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+
+                        <!-- Intermediate -->
+                        <div>
+                            <h3 class="text-lg font-bold text-orange-700 border-b border-orange-200 pb-2 mb-4">🟡 Nível Intermediário</h3>
+                            <ul class="grid grid-cols-1 gap-3">
+                                ${lessonData.exercises.intermediate.map((ex, i) => `
+                                    <li class="bg-white p-4 rounded border border-stone-200 shadow-sm flex gap-3">
+                                        <span class="font-bold text-stone-400">${i+6}.</span>
+                                        <span>${ex}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+
+                        <!-- Advanced -->
+                        <div>
+                            <h3 class="text-lg font-bold text-red-700 border-b border-red-200 pb-2 mb-4">🔴 Nível Desafiador</h3>
+                            <ul class="grid grid-cols-1 gap-3">
+                                ${lessonData.exercises.advanced.map((ex, i) => `
+                                    <li class="bg-white p-4 rounded border border-stone-200 shadow-sm flex gap-3">
+                                        <span class="font-bold text-stone-400">${i+11}.</span>
+                                        <span>${ex}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderChallengeSection() {
+            return `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Project Challenge -->
+                    <div class="bg-stone-800 text-white p-8 rounded-xl shadow-lg relative overflow-hidden">
+                        <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-teal-500 rounded-full opacity-20 blur-xl"></div>
+                        <h2 class="text-2xl font-bold text-teal-400 mb-4">🚀 Desafio Extra: Status de Conexão</h2>
+                        <p class="mb-4 text-stone-300">A empresa precisa verificar se o dispositivo está online ao abrir o app.</p>
+                        
+                        <div class="bg-stone-900/50 p-4 rounded border border-stone-700 mb-4">
+                            <h4 class="font-bold text-white mb-2">Requisitos:</h4>
+                            <ul class="list-disc list-inside text-sm text-stone-300 space-y-1">
+                                <li>Simule uma variável booleana <code>isOnline</code>.</li>
+                                <li>Se <strong>true</strong>: Texto "Pronto para Rastrear" (Verde).</li>
+                                <li>Se <strong>false</strong>: Texto "Sem Conexão" (Vermelho).</li>
+                            </ul>
+                        </div>
+                        <div class="text-xs text-stone-500">Dica: Use <code>tvStatus.setTextColor(Color.RED)</code></div>
+                    </div>
+
+                    <!-- Validation Checklist -->
+                    <div class="bg-white p-8 rounded-xl shadow-md border border-stone-200">
+                        <h2 class="text-xl font-bold text-stone-800 mb-4">🧾 Checklist de Aprendizado</h2>
+                        <p class="text-sm text-stone-500 mb-6">Marque os itens conforme você domina os tópicos.</p>
+                        
+                        <div class="space-y-4">
+                            ${lessonData.checklist.map(item => `
+                                <label class="flex items-start gap-3 cursor-pointer group">
+                                    <input type="checkbox" 
+                                        class="checklist-item mt-1 w-5 h-5 text-teal-600 rounded border-stone-300 focus:ring-teal-500" 
+                                        data-id="${item.id}"
+                                        ${state.checkedItems.has(item.id) ? 'checked' : ''}>
+                                    <span class="text-stone-700 group-hover:text-stone-900 transition-colors">${item.text}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- INTERACTIVITY & CHARTS ---
+
+        function initPlanningCharts() {
+            const ctx = document.getElementById('marketChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Cobertura Ideal (API 26+)', 'Dispositivos Antigos'],
+                    datasets: [{
+                        data: [90, 10],
+                        backgroundColor: ['#0d9488', '#d6d3d1'], // Teal 600, Stone 300
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        function initChecklistListeners() {
+            document.querySelectorAll('.checklist-item').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const id = e.target.getAttribute('data-id');
+                    if (e.target.checked) {
+                        state.checkedItems.add(id);
+                    } else {
+                        state.checkedItems.delete(id);
+                    }
+                    updateProgress();
+                });
+            });
+        }
+
+        function updateProgress() {
+            const total = lessonData.checklist.length;
+            const checked = state.checkedItems.size;
+            const percent = Math.round((checked / total) * 100);
+            
+            const bar = document.getElementById('progress-bar');
+            const text = document.getElementById('progress-text');
+            
+            if(bar && text) {
+                bar.style.width = `${percent}%`;
+                text.innerText = `${percent}%`;
+                
+                if (percent === 100) {
+                    bar.classList.add('bg-green-500');
+                    bar.classList.remove('bg-teal-600');
+                }
+            }
+        }
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
