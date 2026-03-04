@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aula 01: Imersão em Kotlin - Sintaxe e Lógica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Deep Slate & Electric Indigo (Modern, focused, professional) -->
+    <!-- Application Structure Plan: 
+         1. Executive Summary: Quick overview for orientation.
+         2. Sectioned Learning Modules:
+            - Módulo A (Tipos & Memória): Explicação profunda sobre val/var e tipos primitivos vs objetos.
+            - Módulo B (Decisões de Fluxo): Comparação detalhada de If/When como expressões.
+            - Módulo C (Arquitetura de Funções): Parâmetros nomeados, valores padrão e retornos.
+         3. Laboratório Expandido: 3 estágios de codificação (Básico -> Lógica -> Função).
+         4. Central de Exercícios: Gradualismo pedagógico.
+    -->
+    <!-- Visualization & Content Choices:
+         1. Memory Management Chart: Visualizing val vs var.
+         2. Syntax Breakdown: Interactive "hover to explain" elements for code parts.
+         3. Logic Branching: Visualizing the 'when' logic tree.
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* Slate 100 */
+            color: #0f172a; /* Slate 900 */
+        }
+        
+        .code-font { font-family: 'Fira Code', monospace; }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+            height: 250px;
+        }
+
+        .tab-active {
+            background-color: #4f46e5; /* Indigo 600 */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .code-block {
+            background-color: #1e293b; /* Slate 800 */
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            border: 1px solid #334155;
+        }
+
+        .hl-key { color: #c678dd; } /* Purple */
+        .hl-type { color: #e5c07b; } /* Yellow */
+        .hl-func { color: #61afef; } /* Blue */
+        .hl-str { color: #98c379; } /* Green */
+        .hl-val { color: #d19a66; } /* Orange */
+        .hl-com { color: #5c6370; font-style: italic; } /* Gray */
+
+        .theory-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #4f46e5;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            transition: transform 0.2s;
+        }
+        .theory-card:hover { transform: translateX(5px); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-indigo-900 text-white shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="bg-indigo-700 px-3 py-1 rounded text-xs font-bold tracking-widest uppercase">Aula 01 • Fatec Garça</span>
+                    </div>
+                    <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Programação Kotlin: Deep Dive</h1>
+                    <p class="mt-2 text-indigo-200 text-lg">Fundamentos de Tipagem, Controle de Fluxo e Funções de Negócio.</p>
+                </div>
+                <div class="mt-6 md:mt-0 text-center md:text-right border-l-0 md:border-l border-indigo-700 pl-0 md:pl-8">
+                    <p class="text-sm uppercase tracking-widest text-indigo-300">Professor</p>
+                    <p class="text-xl font-bold">Ferdinando Paes</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content Navigator -->
+    <div class="bg-white border-b border-slate-200 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 flex space-x-2 py-3 overflow-x-auto no-scrollbar">
+            <button onclick="changeTab('theory')" id="btn-theory" class="tab-btn px-4 py-2 rounded-full text-sm font-semibold transition-all tab-active">Fundamentação Profunda</button>
+            <button onclick="changeTab('lab')" id="btn-lab" class="tab-btn px-4 py-2 rounded-full text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-all">Laboratório de Engenharia</button>
+            <button onclick="changeTab('exercises')" id="btn-exercises" class="tab-btn px-4 py-2 rounded-full text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-all">Desafios de Fixação</button>
+            <button onclick="changeTab('review')" id="btn-review" class="tab-btn px-4 py-2 rounded-full text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-all">Checklist & Bibliografia</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        <div id="content-area">
+            <!-- Theory Section -->
+            <div id="sec-theory" class="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-900 border-b-2 border-indigo-100 pb-2 mb-6">1. Anatomia das Variáveis: val vs var</h2>
+                    <p class="text-slate-600 mb-6 leading-relaxed">Diferente de linguagens onde a mutabilidade é o padrão, o Kotlin incentiva o design imutável para evitar efeitos colaterais em aplicativos concorrentes (muito comum no Android).</p>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="theory-card">
+                            <h3 class="font-bold text-indigo-700 text-lg mb-3">val (Value) - A Referência de Leitura Única</h3>
+                            <p class="text-sm text-slate-600 mb-4">Em nível de compilação, o <code>val</code> gera apenas um getter. É similar ao <code>final</code> no Java ou <code>const</code> no JS. Use para constantes, configurações e dados que não devem ser alterados após o cálculo inicial.</p>
+                            <div class="code-block code-font text-xs">
+                                <span class="hl-com">// Imutável: Garantia de segurança em Threads</span><br>
+                                <span class="hl-key">val</span> pi: <span class="hl-type">Double</span> = <span class="hl-val">3.14159</span><br>
+                                <span class="hl-key">val</span> appName = <span class="hl-str">"Logistics App"</span> <span class="hl-com">// Tipo inferido como String</span>
+                            </div>
+                        </div>
+                        <div class="theory-card" style="border-left-color: #f59e0b;">
+                            <h3 class="font-bold text-amber-700 text-lg mb-3">var (Variable) - O Contêiner Mutável</h3>
+                            <p class="text-sm text-slate-600 mb-4">Gera um getter e um setter. Essencial para contadores, estados de UI (como o texto digitado em um formulário) ou buffers de dados.</p>
+                            <div class="code-block code-font text-xs">
+                                <span class="hl-com">// Mutável: O valor pode ser reatribuído</span><br>
+                                <span class="hl-key">var</span> contador: <span class="hl-type">Int</span> = <span class="hl-val">0</span><br>
+                                contador += <span class="hl-val">1</span> <span class="hl-com">// Incremento válido</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="bg-indigo-50 p-8 rounded-2xl border border-indigo-100">
+                    <h2 class="text-2xl font-bold text-indigo-900 mb-4">2. Expressões: Tudo Retorna Algo</h2>
+                    <p class="text-indigo-800 mb-6 italic">Conceito Formal: Em Kotlin, 'if' e 'when' não são apenas instruções (statements), são expressões.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="font-bold mb-2">If como Expressão</h4>
+                            <div class="code-block code-font text-xs">
+                                <span class="hl-key">val</span> status = <span class="hl-key">if</span> (nota >= <span class="hl-val">6</span>) <span class="hl-str">"Aprovado"</span> <span class="hl-key">else</span> <span class="hl-str">"DP"</span>
+                            </div>
+                            <p class="text-xs text-indigo-600 mt-2">Isso elimina a necessidade do operador ternário (a?b:c).</p>
+                        </div>
+                        <div>
+                            <h4 class="font-bold mb-2">When: O Switch com Esteroides</h4>
+                            <div class="code-block code-font text-xs">
+                                <span class="hl-key">val</span> msg = <span class="hl-key">when</span> (nota) {<br>
+                                &nbsp;&nbsp;<span class="hl-val">10</span> -> <span class="hl-str">"Perfeito!"</span><br>
+                                &nbsp;&nbsp;<span class="hl-key">in</span> <span class="hl-val">7..9</span> -> <span class="hl-str">"Muito bom"</span><br>
+                                &nbsp;&nbsp;<span class="hl-key">else</span> -> <span class="hl-str">"Estude mais"</span><br>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-900 border-b-2 border-indigo-100 pb-2 mb-6">3. Funções: Os Blocos de Construção</h2>
+                    <div class="theory-card">
+                        <p class="text-slate-600 mb-4">As funções em Kotlin são cidadãs de primeira classe. Elas podem ter valores padrão nos parâmetros, o que reduz drasticamente a sobrecarga de métodos comum no Java.</p>
+                        <div class="code-block code-font text-sm">
+                            <span class="hl-key">fun</span> <span class="hl-func">formatarMoeda</span>(valor: <span class="hl-type">Double</span>, simbolo: <span class="hl-type">String</span> = <span class="hl-str">"R$"</span>): <span class="hl-type">String</span> {<br>
+                            &nbsp;&nbsp;<span class="hl-key">return</span> <span class="hl-str">"$simbolo $valor"</span><br>
+                            }<br><br>
+                            <span class="hl-com">// Chamada 1: Usa padrão</span><br>
+                            <span class="hl-func">println</span>(<span class="hl-func">formatarMoeda</span>(<span class="hl-val">150.0</span>)) <span class="hl-com">// Saída: R$ 150.0</span><br>
+                            <span class="hl-com">// Chamada 2: Sobrescreve padrão</span><br>
+                            <span class="hl-func">println</span>(<span class="hl-func">formatarMoeda</span>(<span class="hl-val">50.0</span>, <span class="hl-str">"US$"</span>)) <span class="hl-com">// Saída: US$ 50.0</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Lab Section -->
+            <div id="sec-lab" class="hidden space-y-12 animate-in fade-in duration-500">
+                <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                    <h2 class="text-3xl font-bold text-indigo-900 mb-4">Laboratório: Roteiro Prático</h2>
+                    <p class="text-slate-600 mb-8 font-medium">Siga as fases abaixo no seu Scratch File do Android Studio.</p>
+
+                    <!-- Phase 1 -->
+                    <div class="border-l-4 border-indigo-500 pl-6 mb-10">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Fase 1: Manipulação de Tipos e Strings</h3>
+                        <p class="text-sm text-slate-500 mb-4">Objetivo: Entender a interpolação e declaração explícita.</p>
+                        <div class="code-block code-font mb-4">
+                            <span class="hl-key">val</span> usuario: <span class="hl-type">String</span> = <span class="hl-str">"Ferdinando"</span><br>
+                            <span class="hl-key">var</span> saldo: <span class="hl-type">Double</span> = <span class="hl-val">1250.50</span><br>
+                            <span class="hl-func">println</span>(<span class="hl-str">"Olá <span class="hl-val">$usuario</span>, seu saldo é <span class="hl-val">$saldo</span>"</span>)
+                        </div>
+                    </div>
+
+                    <!-- Phase 2 -->
+                    <div class="border-l-4 border-amber-500 pl-6 mb-10">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Fase 2: Lógica Condicional de Negócio</h3>
+                        <p class="text-sm text-slate-500 mb-4">Objetivo: Aplicar regras de negócio dinâmicas.</p>
+                        <div class="code-block code-font mb-4">
+                            <span class="hl-key">val</span> idade = <span class="hl-val">17</span><br>
+                            <span class="hl-key">val</span> podeDirigir = <span class="hl-key">if</span> (idade >= <span class="hl-val">18</span>) <span class="hl-key">true</span> <span class="hl-key">else</span> <span class="hl-key">false</span><br><br>
+                            <span class="hl-key">val</span> categoriaHabilitacao = <span class="hl-key">when</span> {<br>
+                            &nbsp;&nbsp;idade < <span class="hl-val">16</span> -> <span class="hl-str">"Não permitido"</span><br>
+                            &nbsp;&nbsp;idade <span class="hl-key">in</span> <span class="hl-val">16..17</span> -> <span class="hl-str">"Apenas acompanhado"</span><br>
+                            &nbsp;&nbsp;<span class="hl-key">else</span> -> <span class="hl-str">"Habilitado"</span><br>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Phase 3 -->
+                    <div class="border-l-4 border-green-500 pl-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Fase 3: Refatoração para Funções</h3>
+                        <p class="text-sm text-slate-500 mb-4">Objetivo: Organizar o código para reuso.</p>
+                        <div class="code-block code-font">
+                            <span class="hl-key">fun</span> <span class="hl-func">avaliarCredito</span>(renda: <span class="hl-type">Double</span>, score: <span class="hl-type">Int</span>): <span class="hl-type">Boolean</span> {<br>
+                            &nbsp;&nbsp;<span class="hl-key">return</span> renda > <span class="hl-val">2000.0</span> && score > <span class="hl-val">600</span><br>
+                            }<br><br>
+                            <span class="hl-key">val</span> aprovado = <span class="hl-func">avaliarCredito</span>(<span class="hl-val">2500.0</span>, <span class="hl-val">700</span>)<br>
+                            <span class="hl-func">println</span>(<span class="hl-str">"Resultado Crédito: <span class="hl-val">$aprovado</span>"</span>)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exercises Section -->
+            <div id="sec-exercises" class="hidden space-y-8 animate-in fade-in duration-500">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl border border-slate-200">
+                        <h3 class="text-lg font-bold text-indigo-700 mb-4">Exercícios Básicos</h3>
+                        <ol class="space-y-4 text-sm text-slate-600">
+                            <li><strong>1.</strong> Declare uma variável imutável com o valor do Salário Mínimo e uma mutável com seu Salário Atual. Calcule quantos salários mínimos você ganha.</li>
+                            <li><strong>2.</strong> Crie uma String Template que exiba seu nome em maiúsculas (Dica: use <code>${nome.uppercase()}</code>).</li>
+                            <li><strong>3.</strong> Escreva uma função que receba um Int e retorne se ele é positivo, negativo ou zero.</li>
+                            <li><strong>4.</strong> Use um <code>for</code> simples para imprimir todos os números pares de 2 a 100.</li>
+                            <li><strong>5.</strong> Crie uma função de uma única linha (Single-expression function) que converta Celsius para Fahrenheit.</li>
+                        </ol>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl border border-slate-200">
+                        <h3 class="text-lg font-bold text-orange-700 mb-4">Exercícios Intermediários</h3>
+                        <ol class="space-y-4 text-sm text-slate-600">
+                            <li><strong>6.</strong> Sistema de Desconto: Crie uma função que receba o valor da compra. Se > 500, desconto de 20%. Se > 200, desconto de 10%. Use <code>when</code>.</li>
+                            <li><strong>7.</strong> Verificador de Triângulos: Função que recebe 3 lados e diz se é Equilátero, Isósceles ou Escaleno.</li>
+                            <li><strong>8.</strong> Simule um caixa eletrônico: Receba um valor de saque e verifique se há notas de 100, 50, 20 e 10 suficientes (use lógica de divisão e resto).</li>
+                            <li><strong>9.</strong> Crie uma função que receba uma lista de nomes e imprima apenas os que começam com a letra 'A'.</li>
+                            <li><strong>10.</strong> Implemente uma função que calcule o Fatorial de um número usando um loop <code>while</code>.</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-900 text-white p-8 rounded-2xl">
+                    <h3 class="text-xl font-bold text-teal-400 mb-4">🏆 Desafios de Engenharia</h3>
+                    <div class="space-y-6">
+                        <div class="p-4 bg-slate-800 rounded-lg border border-slate-700">
+                            <h4 class="font-bold text-indigo-300 mb-2">11. Calculadora de IMC com Classificação</h4>
+                            <p class="text-sm">Crie uma função que receba peso e altura, calcule o IMC e use um <code>when</code> para retornar a string da categoria (Abaixo do peso, Normal, Sobrepeso, etc) baseada na tabela oficial da OMS.</p>
+                        </div>
+                        <div class="p-4 bg-slate-800 rounded-lg border border-slate-700">
+                            <h4 class="font-bold text-indigo-300 mb-2">12. Validador de Senha Complexa</h4>
+                            <p class="text-sm">Desenvolva uma função que receba uma senha (String) e retorne um Booleano se: tiver mais de 8 caracteres, pelo menos um número e pelo menos uma letra maiúscula.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Section -->
+            <div id="sec-review" class="hidden space-y-8 animate-in fade-in duration-500">
+                <div class="bg-white p-8 rounded-2xl border border-slate-200">
+                    <h2 class="text-2xl font-bold mb-6">Conexão com a Bibliografia</h2>
+                    <div class="space-y-4 text-slate-700">
+                        <p><strong>• Jemerov, S. & Isakova, S. (Kotlin in Action):</strong> Alinhado com o Capítulo 2, focando em "Kotlin Basics". A profundidade sobre 'Smart Casts' e 'Expression vs Statement' vem diretamente desta obra clássica.</p>
+                        <p><strong>• Griffiths & Griffiths (Head First Kotlin):</strong> A abordagem visual de como o Kotlin trata tipos como objetos no topo da hierarquia (Any) é baseada na didática de 'Use a Cabeça'.</p>
+                    </div>
+                    
+                    <h2 class="text-2xl font-bold mt-10 mb-6">Checklist de Aprendizado</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${["Diferencio val de var tecnicamente?", "Sei usar if/when como expressão?", "Entendo o que é inferência de tipos?", "Consigo criar funções com parâmetros padrão?", "Executei código no Scratch File com sucesso?"].map(item => `
+                            <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                                <input type="checkbox" class="w-5 h-5 text-indigo-600 rounded">
+                                <span class="text-sm">${item}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function changeTab(tabId) {
+            // Hide all
+            document.getElementById('sec-theory').classList.add('hidden');
+            document.getElementById('sec-lab').classList.add('hidden');
+            document.getElementById('sec-exercises').classList.add('hidden');
+            document.getElementById('sec-review').classList.add('hidden');
+            
+            // Show target
+            document.getElementById('sec-' + tabId).classList.remove('hidden');
+
+            // Reset buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('tab-active');
+                btn.classList.add('text-slate-600');
+            });
+
+            // Set active button
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.add('tab-active');
+            activeBtn.classList.remove('text-slate-600');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
