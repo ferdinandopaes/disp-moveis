@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aula 03: O Guia Definitivo do Jetpack Compose</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Compose Deep Indigo & Slate (Acadêmico, tecnológico e legível) -->
+    <!-- Application Structure Plan: 
+         1. Dashboard de Conceitos: Uma visão panorâmica do "Mindset" declarativo.
+         2. Enciclopédia de Fundamentos: Seções detalhadas sobre Teoria, Mecânica de Recomposição e Anatomia.
+         3. Laboratório Guiado: Instruções passo a passo com "Por quês" em cada linha de código.
+         4. Prática Adaptativa: Exercícios que evoluem em complexidade.
+         5. Mural de Projetos: Desafio contextualizado.
+    -->
+    <!-- Visualization & Content Choices:
+         1. Paradigm Comparison Table: XML (Imperativo) vs Compose (Declarativo).
+         2. The Compose Loop: Visualizing State -> UI -> Event -> State.
+         3. Modifier Chaining: Explaining how order changes the result.
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            scroll-behavior: smooth;
+        }
+        
+        .code-font { font-family: 'Fira Code', monospace; }
+
+        .tab-active {
+            background-color: #4f46e5; 
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+        }
+
+        .code-block {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            border-left: 4px solid #818cf8;
+        }
+
+        .hl-anno { color: #fbbf24; font-weight: bold; } 
+        .hl-key { color: #c678dd; } 
+        .hl-func { color: #61afef; } 
+        .hl-type { color: #e5c07b; } 
+        .hl-str { color: #98c379; } 
+        .hl-com { color: #5c6370; font-style: italic; }
+
+        .prose-content p {
+            margin-bottom: 1.25rem;
+            line-height: 1.8;
+            color: #334155;
+        }
+
+        .theory-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 2rem;
+            border-radius: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-box {
+            background: #f8fafc;
+            border-left: 4px solid #4f46e5;
+            padding: 1.25rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+            height: 300px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header / Hero -->
+    <header class="bg-slate-900 text-white shadow-2xl overflow-hidden relative">
+        <div class="absolute top-0 right-0 w-1/3 h-full bg-indigo-600 skew-x-12 translate-x-1/2 opacity-10"></div>
+        <div class="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 relative z-10">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+                <div class="max-w-3xl">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="bg-indigo-500 px-3 py-1 rounded text-xs font-bold tracking-widest uppercase shadow-lg">Aula 03 • Fatec Garça</span>
+                        <span class="text-indigo-300 font-medium">Carga Horária: 04 Horas</span>
+                    </div>
+                    <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">Mergulhando no Jetpack Compose</h1>
+                    <p class="text-slate-400 text-xl leading-relaxed">Aprenda a construir interfaces modernas através de funções declarativas e entenda a ciência por trás da recomposição.</p>
+                </div>
+                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl text-center md:text-right min-w-[240px]">
+                    <p class="text-xs uppercase tracking-widest text-indigo-400 font-bold mb-1">Cátedra de Mobile</p>
+                    <p class="text-2xl font-bold text-white">Ferdinando Paes</p>
+                    <p class="text-sm text-slate-500">Especialista em Ecossistema Kotlin</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 flex space-x-2 py-3 overflow-x-auto no-scrollbar">
+            <button onclick="changeTab('theory')" id="btn-theory" class="tab-btn px-6 py-2 rounded-xl text-sm font-bold transition-all tab-active">📖 Fundamentação Detalhada</button>
+            <button onclick="changeTab('lab')" id="btn-lab" class="tab-btn px-6 py-2 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all">🛠 Laboratório Passo a Passo</button>
+            <button onclick="changeTab('exercises')" id="btn-exercises" class="tab-btn px-6 py-2 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all">🧠 Centro de Exercícios</button>
+            <button onclick="changeTab('project')" id="btn-project" class="tab-btn px-6 py-2 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all">🚀 Desafio & Checklist</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        <div id="content-area">
+            
+            <!-- Fundamentação Detalhada Section -->
+            <div id="sec-theory" class="space-y-16 animate-in fade-in duration-500 prose-content">
+                
+                <section>
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="h-12 w-2 bg-indigo-600 rounded-full"></div>
+                        <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">1. O Grande Salto: Do Imperativo ao Declarativo</h2>
+                    </div>
+                    
+                    <div class="theory-card mb-8">
+                        <p>Para entender o Jetpack Compose, primeiro precisamos desaprender como fazíamos interfaces no Android Clássico (XML). No modelo antigo, trabalhávamos de forma <strong>imperativa</strong>. Imagine que você é um pintor e precisa descrever cada passo: "pegue o pincel, molhe no azul, faça um círculo na coordenada X,Y". Se o círculo precisasse mudar de cor, você teria que voltar lá, apagar e pintar de novo.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 my-10">
+                            <div class="p-6 bg-red-50 rounded-2xl border border-red-100">
+                                <h4 class="font-bold text-red-800 mb-3 flex items-center gap-2">🔴 Era XML (Imperativa)</h4>
+                                <p class="text-sm text-red-700">Você manipula manualmente a árvore de views. Se o dado muda, você precisa buscar o componente (<code>findViewById</code>) e setar o novo valor (<code>setText</code>). É propenso a erros de sincronia.</p>
+                            </div>
+                            <div class="p-6 bg-emerald-50 rounded-2xl border border-emerald-100">
+                                <h4 class="font-bold text-emerald-800 mb-3 flex items-center gap-2">🟢 Era Compose (Declarativa)</h4>
+                                <p class="text-sm text-emerald-700">Você descreve <strong>o que</strong> quer ver na tela baseado no estado atual. "Se o usuário está logado, mostre a foto dele". O Compose redesenha a UI automaticamente sempre que o estado muda.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="scenario-box">
+                            <h5 class="font-bold text-indigo-900 mb-2">Cenário Real: Carrinho de Compras</h5>
+                            <p class="text-sm">No XML, para atualizar o preço total, você teria que ouvir cada clique, somar e atualizar o <code>TextView</code>. No Compose, você apenas diz: <code>Text("Total: $soma")</code>. Quando a lista de itens muda, o Compose percebe e atualiza o texto sozinho. Isso é <strong>reatividade</strong>.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="h-12 w-2 bg-indigo-600 rounded-full"></div>
+                        <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">2. A Ciência da Recomposição</h2>
+                    </div>
+                    
+                    <div class="theory-card mb-8">
+                        <p>O conceito mais profundo do Compose é a <strong>Recomposição</strong>. Quando um dado usado por uma função <code>@Composable</code> muda, essa função é executada novamente com o novo dado.</p>
+                        <p>No entanto, o Compose é inteligente: ele não redesenha a tela inteira (o que seria lento). Ele usa um algoritmo de <strong>diffing</strong> para identificar exatamente qual pedaço da interface depende daquele dado e atualiza apenas o necessário. Isso garante uma performance de 60 FPS (quadros por segundo) mesmo em telas complexas.</p>
+                        
+                        <div class="bg-slate-900 p-6 rounded-xl my-6">
+                            <h4 class="text-indigo-400 font-bold mb-4">O Fluxo da UI Moderna</h4>
+                            <div class="flex flex-col md:flex-row justify-around items-center gap-4 text-white text-center">
+                                <div class="p-4 border border-slate-700 rounded-lg w-full">
+                                    <span class="block text-xl font-bold">ESTADO</span>
+                                    <span class="text-xs text-slate-400">Os dados (ex: Lista de Preços)</span>
+                                </div>
+                                <div class="text-2xl">➔</div>
+                                <div class="p-4 border border-slate-700 rounded-lg w-full bg-indigo-900/50">
+                                    <span class="block text-xl font-bold">COMPOSABLE</span>
+                                    <span class="text-xs text-slate-400">A função que consome o dado</span>
+                                </div>
+                                <div class="text-2xl">➔</div>
+                                <div class="p-4 border border-slate-700 rounded-lg w-full">
+                                    <span class="block text-xl font-bold">UI</span>
+                                    <span class="text-xs text-slate-400">O que o usuário vê na tela</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="h-12 w-2 bg-indigo-600 rounded-full"></div>
+                        <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">3. Anatomia Técnica: Funções e Anotações</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="space-y-6">
+                            <p>Toda interface no Compose começa com uma função Kotlin comum, mas com "superpoderes" conferidos por anotações específicas:</p>
+                            <ul class="space-y-4">
+                                <li class="theory-card p-4">
+                                    <strong class="text-indigo-600">@Composable:</strong> Esta não é apenas uma etiqueta. Ela avisa ao compilador do Kotlin que esta função vai emitir nós de UI. Funções Composable só podem ser chamadas de dentro de outras funções Composable.
+                                </li>
+                                <li class="theory-card p-4">
+                                    <strong class="text-indigo-600">@Preview:</strong> É o fim do ciclo "compilar -> esperar -> ver no celular". Com ela, você renderiza sua UI diretamente no IDE. Você pode ter vários previews: um para tema escuro, outro para tela pequena, etc.
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="code-block text-xs h-fit sticky top-24">
+                            <span class="hl-com">// Anatomia de um componente profissional</span><br>
+                            <span class="hl-anno">@Composable</span><br>
+                            <span class="hl-key">fun</span> <span class="hl-func">BotaoCustomizado</span>(texto: <span class="hl-type">String</span>) {<br>
+                            &nbsp;&nbsp;<span class="hl-func">Button</span>(onClick = { <span class="hl-com">/* ação */</span> }) {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-func">Text</span>(text = texto)<br>
+                            &nbsp;&nbsp;}<br>
+                            }<br><br>
+                            <span class="hl-anno">@Preview</span>(name = <span class="hl-str">"Visualização Padrão"</span>)<br>
+                            <span class="hl-anno">@Composable</span><br>
+                            <span class="hl-key">fun</span> <span class="hl-func">PreviewBotao</span>() {<br>
+                            &nbsp;&nbsp;<span class="hl-func">BotaoCustomizado</span>(<span class="hl-str">"Clique Aqui"</span>)<br>
+                            }
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="h-12 w-2 bg-indigo-600 rounded-full"></div>
+                        <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">4. Layouts: Organizando o Espaço</h2>
+                    </div>
+                    <p class="mb-6">Diferente do XML, onde tínhamos <code>ConstraintLayout</code> para tudo, no Compose usamos três componentes fundamentais que resolvem 90% dos casos:</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                        <div class="theory-card text-center">
+                            <div class="text-4xl mb-3">⫴</div>
+                            <h4 class="font-bold mb-2">Column</h4>
+                            <p class="text-xs text-slate-500">Empilha elementos verticalmente (um abaixo do outro).</p>
+                        </div>
+                        <div class="theory-card text-center">
+                            <div class="text-4xl mb-3">⫫</div>
+                            <h4 class="font-bold mb-2">Row</h4>
+                            <p class="text-xs text-slate-500">Organiza elementos horizontalmente (um ao lado do outro).</p>
+                        </div>
+                        <div class="theory-card text-center">
+                            <div class="text-4xl mb-3">❏</div>
+                            <h4 class="font-bold mb-2">Box</h4>
+                            <p class="text-xs text-slate-500">Sobrepõe elementos (um em cima do outro, como camadas).</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="bg-indigo-900 text-white p-10 rounded-3xl shadow-2xl">
+                    <h3 class="text-2xl font-bold mb-6 flex items-center gap-2">💡 Dica de Especialista: A Ordem dos Modifiers</h3>
+                    <p class="text-indigo-200 mb-6">O <code>Modifier</code> é o objeto que usamos para estilizar componentes. Um segredo que confunde iniciantes: <strong>a ordem importa!</strong></p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-white/10 p-4 rounded-lg">
+                            <p class="text-xs font-mono mb-2">Modifier.padding(8.dp).background(Color.Red)</p>
+                            <p class="text-xs text-indigo-300">Resultado: O preenchimento acontece PRIMEIRO, e o fundo vermelho aparece em volta do conteúdo original.</p>
+                        </div>
+                        <div class="bg-white/10 p-4 rounded-lg">
+                            <p class="text-xs font-mono mb-2">Modifier.background(Color.Red).padding(8.dp)</p>
+                            <p class="text-xs text-indigo-300">Resultado: O fundo fica vermelho PRIMEIRO, e o padding empurra o conteúdo para dentro desse fundo vermelho.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Lab Section -->
+            <div id="sec-lab" class="hidden space-y-12 animate-in fade-in duration-500">
+                <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                    <h2 class="text-3xl font-bold text-indigo-900 mb-6">Laboratório: Construindo o Perfil do Motorista</h2>
+                    <p class="text-slate-600 mb-10">Neste laboratório, vamos construir um card de identificação para o App de Logística da Fatec Garça. O objetivo é praticar o aninhamento de <code>Column</code> e <code>Row</code>.</p>
+
+                    <div class="space-y-12">
+                        <!-- Passo 1 -->
+                        <div class="flex gap-6">
+                            <div class="h-12 w-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xl shrink-0">1</div>
+                            <div>
+                                <h4 class="text-xl font-bold text-slate-900 mb-2">Preparando o Terreno</h4>
+                                <p class="text-slate-600 text-sm mb-4">Abra o Android Studio e crie um projeto <strong>Empty Compose Activity</strong>. Apague o código de exemplo do <code>Greeting</code>.</p>
+                            </div>
+                        </div>
+
+                        <!-- Passo 2 -->
+                        <div class="flex gap-6">
+                            <div class="h-12 w-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xl shrink-0">2</div>
+                            <div class="w-full">
+                                <h4 class="text-xl font-bold text-slate-900 mb-2">O Componente Composable</h4>
+                                <p class="text-slate-600 text-sm mb-4">Digite o código abaixo. Note como usamos <code>Modifier</code> para dar forma ao card.</p>
+                                <div class="code-block code-font">
+<span class="hl-anno">@Composable</span><br>
+<span class="hl-key">fun</span> <span class="hl-func">DriverProfileCard</span>(nome: <span class="hl-type">String</span>, veiculo: <span class="hl-type">String</span>) {<br>
+&nbsp;&nbsp;<span class="hl-com">// Card é um container com sombra e bordas arredondadas</span><br>
+&nbsp;&nbsp;<span class="hl-func">Card</span>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;modifier = <span class="hl-type">Modifier</span>.<span class="hl-func">padding</span>(<span class="hl-val">16</span>.<span class="hl-func">dp</span>).<span class="hl-func">fillMaxWidth</span>(),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;elevation = <span class="hl-val">4</span>.<span class="hl-func">dp</span><br>
+&nbsp;&nbsp;) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-func">Row</span>(modifier = <span class="hl-type">Modifier</span>.<span class="hl-func">padding</span>(<span class="hl-val">16</span>.<span class="hl-func">dp</span>)) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-com">// Simulação de Foto</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-func">Box</span>(modifier = <span class="hl-type">Modifier</span>.<span class="hl-func">size</span>(<span class="hl-val">60</span>.<span class="hl-func">dp</span>).<span class="hl-func">background</span>(<span class="hl-type">Color</span>.LightGray))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-func">Spacer</span>(modifier = <span class="hl-type">Modifier</span>.<span class="hl-func">width</span>(<span class="hl-val">16</span>.<span class="hl-func">dp</span>))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-func">Column</span> {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-func">Text</span>(text = nome, style = <span class="hl-type">MaterialTheme</span>.typography.h6)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-func">Text</span>(text = <span class="hl-str">"Veículo: $veiculo"</span>, color = <span class="hl-type">Color</span>.Gray)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;}<br>
+}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Passo 3 -->
+                        <div class="flex gap-6">
+                            <div class="h-12 w-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xl shrink-0">3</div>
+                            <div>
+                                <h4 class="text-xl font-bold text-slate-900 mb-2">Visualizando sem Celular</h4>
+                                <p class="text-slate-600 text-sm mb-4">Adicione a função de Preview abaixo e clique em <strong>Build & Refresh</strong> na aba lateral.</p>
+                                <div class="code-block code-font">
+<span class="hl-anno">@Preview</span>(showBackground = <span class="hl-key">true</span>)<br>
+<span class="hl-anno">@Composable</span><br>
+<span class="hl-key">fun</span> <span class="hl-func">PreviewDriver</span>() {<br>
+&nbsp;&nbsp;<span class="hl-func">DriverProfileCard</span>(<span class="hl-str">"Ricardo Santos"</span>, <span class="hl-str">"Scania R450"</span>)<br>
+}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exercises Section -->
+            <div id="sec-exercises" class="hidden space-y-12 animate-in fade-in duration-500">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white p-8 rounded-2xl border border-slate-200">
+                        <h3 class="text-xl font-bold text-indigo-600 mb-6 border-b pb-4">🟢 Nível 1: Exploração de Layouts</h3>
+                        <ol class="space-y-6 text-sm text-slate-600">
+                            <li><strong>1.</strong> Crie um Composable que empilhe 4 textos com tamanhos de fonte diferentes.</li>
+                            <li><strong>2.</strong> Desenvolva uma "Linha de Status" (Row) que contenha um círculo colorido (Box) e um texto ao lado.</li>
+                            <li><strong>3.</strong> Experimente o <code>Modifier.fillMaxHeight()</code> em uma <code>Column</code>. O que acontece?</li>
+                            <li><strong>4.</strong> Crie um layout usando <code>Box</code> onde um texto fica centralizado e outro no canto inferior direito.</li>
+                            <li><strong>5.</strong> Crie um botão que, ao ser clicado, não faz nada (ainda), mas mude sua cor via Modifier.</li>
+                        </ol>
+                    </div>
+                    <div class="bg-white p-8 rounded-2xl border border-slate-200">
+                        <h3 class="text-xl font-bold text-amber-600 mb-6 border-b pb-4">🟡 Nível 2: Componentização Reutilizável</h3>
+                        <ol class="space-y-6 text-sm text-slate-600">
+                            <li><strong>6.</strong> Crie um componente <code>InfoLabel</code> que receba "Título" e "Valor" e os exiba de forma organizada.</li>
+                            <li><strong>7.</strong> Refaça o <code>DriverProfileCard</code>, mas desta vez passe um parâmetro de cor para o fundo do card.</li>
+                            <li><strong>8.</strong> Use <code>Arrangement.SpaceBetween</code> em uma <code>Row</code> com 3 elementos. Explique o comportamento.</li>
+                            <li><strong>9.</strong> Crie um componente de "Alerta" que tenha um fundo amarelo suave e uma borda laranja.</li>
+                            <li><strong>10.</strong> Adicione um <code>Image</code> real (usando ícones do sistema) ao lado do nome do motorista.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 p-10 rounded-3xl text-white">
+                    <h3 class="text-2xl font-bold text-indigo-400 mb-6">🔴 Desafio de Engenharia: A Lista de Cargas</h3>
+                    <p class="text-slate-300 mb-6">Crie um Composable chamado <code>CargoItem</code>. Ele deve representar um item de frete e conter:</p>
+                    <ul class="list-disc list-inside space-y-2 text-sm text-slate-400 mb-8">
+                        <li>Nome do Produto (Negrito)</li>
+                        <li>Peso em KG</li>
+                        <li>Destino (Cidade)</li>
+                        <li>Um indicador visual (Box pequeno) que muda de cor: Verde se for "Prioritário", Cinza se for "Normal".</li>
+                    </ul>
+                    <p class="text-xs text-indigo-300 italic">Dica: Use um <code>if</code> dentro da função Composable para decidir a cor do Box.</p>
+                </div>
+            </div>
+
+            <!-- Review & Project Section -->
+            <div id="sec-review" class="hidden space-y-12 animate-in fade-in duration-500">
+                <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-8">🚀 Desafio Extra: App de Rastreio</h2>
+                    <div class="bg-indigo-50 p-8 rounded-2xl border border-indigo-100 mb-10">
+                        <h4 class="font-bold text-indigo-900 mb-4 text-xl">O Problema</h4>
+                        <p class="text-slate-700 leading-relaxed">A Fatec Logística precisa de uma tela de "Detalhes da Entrega". Você deve criar uma tela completa (usando apenas Composables) que exiba:</p>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-600">
+                            <li class="flex items-center gap-2">📍 Título da Entrega (ex: "Entrega #402")</li>
+                            <li class="flex items-center gap-2">🚚 Status atual (ex: "Em Trânsito")</li>
+                            <li class="flex items-center gap-2">🗺️ Endereço de destino formatado</li>
+                            <li class="flex items-center gap-2">👨‍✈️ Card do Motorista (reutilize o do laboratório)</li>
+                        </ul>
+                    </div>
+
+                    <h3 class="text-2xl font-bold text-slate-900 mb-6">🧾 Checklist de Aprendizado</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${[
+                            "Entendo que a UI é uma função do Estado?",
+                            "Diferencio Column, Row e Box sem hesitar?",
+                            "Consigo criar funções Composable e usar o Preview?",
+                            "Compreendo que a recomposição é inteligente e parcial?",
+                            "Sei aplicar modificadores para mudar forma, cor e espaço?",
+                            "Diferencio a lógica declarativa da antiga imperativa?"
+                        ].map(item => `
+                            <div class="flex items-center gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-white transition-all">
+                                <input type="checkbox" class="w-6 h-6 text-indigo-600 rounded-lg">
+                                <span class="text-sm font-semibold text-slate-700">${item}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="mt-16 p-8 bg-slate-50 rounded-3xl border border-slate-200">
+                        <h3 class="font-bold text-slate-800 mb-6 text-xl">📖 Bibliografia Comentada</h3>
+                        <div class="space-y-6 text-sm text-slate-600 leading-relaxed">
+                            <p><strong>• Documentação Oficial Android (Thinking in Compose):</strong> É a bíblia do assunto. Ela explica como o compilador do Compose transforma seu código em uma árvore eficiente de UI. Essencial para entender "Estado".</p>
+                            <p><strong>• Bill Phillips & Chris Stewart (Android Programming: The Big Nerd Ranch Guide):</strong> Os capítulos sobre Compose oferecem uma visão didática excelente sobre o ciclo de vida e a recomposição.</p>
+                            <p><strong>• Ricardo Lecheta (Android Essencial):</strong> Fundamental para entender a transição histórica do ecossistema Android no Brasil, do Java/XML para o Kotlin/Compose.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-white font-bold mb-2">Fatec Garça - Disciplina de Programação de Dispositivos Móveis</p>
+            <p class="text-sm mb-6">Material preparado pelo Professor Ferdinando Paes para estudo independente.</p>
+            <div class="flex justify-center gap-6">
+                <a href="#" class="hover:text-white transition-colors">Documentação</a>
+                <a href="#" class="hover:text-white transition-colors">Fórum</a>
+                <a href="#" class="hover:text-white transition-colors">Repositório</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Tab management
+        function changeTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('tab-active');
+                btn.classList.add('text-slate-500');
+            });
+            document.getElementById('btn-' + tabId).classList.add('tab-active');
+            document.getElementById('btn-' + tabId).classList.remove('text-slate-500');
+
+            document.querySelectorAll('#content-area > div').forEach(sec => {
+                sec.classList.add('hidden');
+            });
+            document.getElementById('sec-' + tabId).classList.remove('hidden');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Productivity Chart
+        function initCharts() {
+            const ctx = document.getElementById('productivityChart');
+            if (!ctx) return;
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Velocidade de Desenvolvimento', 'Reuso de Código', 'Performance (60 FPS)', 'Facilidade de Manutenção'],
+                    datasets: [
+                        {
+                            label: 'Era XML (Antigo)',
+                            data: [45, 30, 70, 40],
+                            backgroundColor: '#94a3b8',
+                        },
+                        {
+                            label: 'Era Compose (Novo)',
+                            data: [90, 85, 95, 90],
+                            backgroundColor: '#4f46e5',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 100, ticks: { display: false } }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        window.onload = initCharts;
+    </script>
+</body>
+</html>
