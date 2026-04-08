@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masterclass Aula 03: Arquitetura e Construção de Telas no Compose</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Indigo Engineering (Slate, Indigo e Emerald para sucesso) -->
+    <!-- Application Structure Plan: 
+         1. Teoria de Base (A Árvore de Composição): Como o Compose "pensa".
+         2. Visualização de Layout (O Triângulo de Ouro): Column, Row e Box no detalhe visual.
+         3. A Ciência do Modifier: Como cada linha de modificação impacta o pixel.
+         4. Construção do App Gourmet Garça: Código exaustivamente comentado.
+         5. Análise de Fluxo: Explicação linha a linha da lógica de tela.
+    -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+            scroll-behavior: smooth;
+        }
+        
+        .code-font { font-family: 'Fira Code', monospace; }
+
+        .tab-active {
+            background-color: #4f46e5;
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+        }
+
+        .code-block {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            border-left: 4px solid #4f46e5;
+        }
+
+        .hl-anno { color: #fbbf24; font-weight: bold; } 
+        .hl-key { color: #c678dd; } 
+        .hl-func { color: #61afef; } 
+        .hl-type { color: #e5c07b; } 
+        .hl-str { color: #98c379; } 
+        .hl-com { color: #5c6370; font-style: italic; }
+
+        .viz-box {
+            border: 2px dashed #cbd5e1;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: #f1f5f9;
+        }
+
+        .modifier-step {
+            border-left: 3px solid #10b981;
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white py-12 shadow-2xl relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 relative z-10">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+                <div>
+                    <span class="bg-indigo-600 px-3 py-1 rounded text-xs font-bold uppercase tracking-widest">Aula 03 • Especialização Deep Dive</span>
+                    <h1 class="text-4xl md:text-5xl font-black mt-4">Arquitetura Visual no <br><span class="text-indigo-400">Jetpack Compose</span></h1>
+                    <p class="text-slate-400 text-lg mt-4 max-w-2xl">Entenda a construção de telas no detalhe: funções, modificadores e o motor de renderização reativa.</p>
+                </div>
+                <div class="bg-slate-800 p-6 rounded-2xl border border-indigo-500/30 text-right">
+                    <p class="text-xs uppercase tracking-widest text-indigo-400 font-bold mb-1">Especialista Mobile</p>
+                    <p class="text-2xl font-bold">Ferdinando Paes</p>
+                    <p class="text-sm text-slate-500 italic">Fatec Garça</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Nav -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 flex space-x-2 py-3 overflow-x-auto no-scrollbar">
+            <button onclick="changeTab('mechanics')" id="btn-mechanics" class="tab-btn px-6 py-2 rounded-xl text-sm font-bold transition-all tab-active">⚙️ O Motor Visual</button>
+            <button onclick="changeTab('layout')" id="btn-layout" class="tab-btn px-6 py-2 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all">📐 O Triângulo de Layout</button>
+            <button onclick="changeTab('modifiers')" id="btn-modifiers" class="tab-btn px-6 py-2 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all">✨ A Ciência do Modifier</button>
+            <button onclick="changeTab('deepdive')" id="btn-deepdive" class="tab-btn px-6 py-2 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all">💻 Construção Prática</button>
+        </div>
+    </nav>
+
+    <!-- Main -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+        <div id="content-area">
+
+            <!-- Motor Visual Section -->
+            <div id="sec-mechanics" class="space-y-12 animate-in fade-in duration-500">
+                <section class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                    <h2 class="text-3xl font-bold mb-6 text-slate-900 flex items-center gap-3">
+                        <span class="text-indigo-600">01.</span> A Árvore de Composição
+                    </h2>
+                    <p class="text-slate-600 leading-relaxed mb-6">Diferente do Android antigo, onde você tinha objetos Java de botões e textos, no Compose **não existem objetos de View persistentes**. A tela é desenhada por uma sucessão de chamadas de funções.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 my-10">
+                        <div class="p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                            <h4 class="font-bold text-indigo-700 mb-4">O que é uma Função Composable?</h4>
+                            <p class="text-sm text-slate-600 mb-4">É uma função marcada com <code>@Composable</code>. O compilador do Kotlin a transforma em um emissor de nós. Ela não retorna nada (é <code>Unit</code>), mas "emite" uma descrição do que deve aparecer.</p>
+                            <div class="code-block text-xs">
+                                <span class="hl-anno">@Composable</span><br>
+                                <span class="hl-key">fun</span> <span class="hl-func">MyText</span>() { <span class="hl-func">Text</span>(<span class="hl-str">"Olá"</span>) }
+                            </div>
+                        </div>
+                        <div class="p-6 bg-indigo-50 rounded-2xl border border-indigo-100">
+                            <h4 class="font-bold text-indigo-800 mb-4">Slot API: A Engenharia de Encaixe</h4>
+                            <p class="text-sm text-indigo-900 mb-4">O Compose usa o conceito de **Slots**. Componentes como <code>Button</code> ou <code>Card</code> têm "buracos" (slots) onde você pode injetar qualquer outro Composable. Isso permite flexibilidade infinita sem herança complexa.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Layout Section -->
+            <div id="sec-layout" class="hidden space-y-12 animate-in fade-in duration-500">
+                <section class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                    <h2 class="text-3xl font-bold mb-8 text-slate-900">02. O Triângulo de Layout: Estruturando o Espaço</h2>
+                    <p class="text-slate-600 mb-10">Toda tela, por mais complexa que seja, é construída aninhando estes três pilares fundamentais:</p>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <!-- Column -->
+                        <div class="viz-box text-center">
+                            <div class="bg-indigo-600 text-white p-2 rounded mb-4 font-bold">Column</div>
+                            <div class="flex flex-col gap-2 border-2 border-indigo-200 p-4 min-h-[150px] justify-center">
+                                <div class="bg-indigo-300 h-8 rounded">Item 1</div>
+                                <div class="bg-indigo-400 h-8 rounded">Item 2</div>
+                                <div class="bg-indigo-500 h-8 rounded">Item 3</div>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-4"><strong>Eixo Principal:</strong> Vertical.<br><strong>Impacto:</strong> Lista elementos um abaixo do outro.</p>
+                        </div>
+                        <!-- Row -->
+                        <div class="viz-box text-center">
+                            <div class="bg-emerald-600 text-white p-2 rounded mb-4 font-bold">Row</div>
+                            <div class="flex flex-row gap-2 border-2 border-emerald-200 p-4 min-h-[150px] items-center justify-center">
+                                <div class="bg-emerald-300 w-10 h-10 rounded">1</div>
+                                <div class="bg-emerald-400 w-10 h-10 rounded">2</div>
+                                <div class="bg-emerald-500 w-10 h-10 rounded">3</div>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-4"><strong>Eixo Principal:</strong> Horizontal.<br><strong>Impacto:</strong> Coloca elementos lado a lado.</p>
+                        </div>
+                        <!-- Box -->
+                        <div class="viz-box text-center">
+                            <div class="bg-amber-600 text-white p-2 rounded mb-4 font-bold">Box</div>
+                            <div class="relative border-2 border-amber-200 p-4 min-h-[150px] flex items-center justify-center">
+                                <div class="bg-amber-200 w-24 h-24 rounded absolute">Atras</div>
+                                <div class="bg-amber-500 w-12 h-12 rounded relative shadow-lg">Frente</div>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-4"><strong>Eixo Principal:</strong> Eixo Z (Profundidade).<br><strong>Impacto:</strong> Sobreposição de elementos.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Modifiers Section -->
+            <div id="sec-modifiers" class="hidden space-y-12 animate-in fade-in duration-500">
+                <section class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                    <h2 class="text-3xl font-bold mb-6 text-slate-900">03. A Ciência do Modifier: Como a Tela se Transforma</h2>
+                    <p class="text-slate-600 mb-8">O <code>Modifier</code> é o objeto mais importante do Compose. Ele é lido **sequencialmente**. Se você mudar a ordem, mudará o resultado visual.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <div class="space-y-6">
+                            <div class="modifier-step">
+                                <h4 class="font-bold">1. fillMaxWidth() / size()</h4>
+                                <p class="text-sm text-slate-500">Define o tamanho que o componente "pede" ao pai. É a primeira restrição.</p>
+                            </div>
+                            <div class="modifier-step">
+                                <h4 class="font-bold">2. background()</h4>
+                                <p class="text-sm text-slate-500">Pinta a área definida até este momento no código.</p>
+                            </div>
+                            <div class="modifier-step" style="border-left-color: #6366f1;">
+                                <h4 class="font-bold">3. padding()</h4>
+                                <p class="text-sm text-slate-500">Cria um espaço interno. Se houver um background antes, o padding fica *dentro* da cor. Se for depois, ele "empurra" o background.</p>
+                            </div>
+                            <div class="modifier-step" style="border-left-color: #f59e0b;">
+                                <h4 class="font-bold">4. clickable()</h4>
+                                <p class="text-sm text-slate-500">Define a área de interação. Se você colocar o <code>clickable</code> antes do padding, o usuário só consegue clicar no conteúdo, não na margem.</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900 p-6 rounded-2xl flex flex-col justify-center">
+                            <h4 class="text-indigo-400 font-bold mb-4">Visualização de Código vs Resultado</h4>
+                            <div class="code-block text-xs mb-4">
+                                <span class="hl-type">Modifier</span><br>
+                                &nbsp;&nbsp;.<span class="hl-func">size</span>(<span class="hl-val">100</span>.<span class="hl-func">dp</span>)<br>
+                                &nbsp;&nbsp;.<span class="hl-func">background</span>(<span class="hl-type">Color</span>.Red)<br>
+                                &nbsp;&nbsp;.<span class="hl-func">padding</span>(<span class="hl-val">10</span>.<span class="hl-func">dp</span>)<br>
+                                &nbsp;&nbsp;.<span class="hl-func">background</span>(<span class="hl-type">Color</span>.Blue)
+                            </div>
+                            <p class="text-xs text-slate-400 italic">Resultado: Um quadrado vermelho de 100dp com um quadrado azul de 80dp centralizado dentro dele.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Deep Dive Code Section -->
+            <div id="sec-deepdive" class="hidden space-y-12 animate-in fade-in duration-500">
+                <section class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+                    <h2 class="text-3xl font-bold mb-8 text-slate-900">04. Construção Real: App Gourmet Garça</h2>
+                    <p class="text-slate-600 mb-8">Vamos construir o card de produto e o formulário, explicando **exatamente** o que cada linha faz na tela do dispositivo.</p>
+
+                    <!-- Card Breakdown -->
+                    <div class="mb-12">
+                        <h3 class="text-xl font-bold text-indigo-700 mb-4 flex items-center gap-2">
+                            🚀 Parte A: O Card de Produto (Arquitetura de Slot)
+                        </h3>
+                        <div class="code-block code-font mb-6">
+<span class="hl-anno">@Composable</span><br>
+<span class="hl-key">fun</span> <span class="hl-func">ProductCard</span>(name: <span class="hl-type">String</span>, price: <span class="hl-type">Double</span>) {<br>
+&nbsp;&nbsp;<span class="hl-com">// 1. O Card cria a "elevação" (sombra) e arredondamento na tela.</span><br>
+&nbsp;&nbsp;<span class="hl-func">Card</span>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;modifier = <span class="hl-type">Modifier</span>.<span class="hl-func">fillMaxWidth</span>().<span class="hl-func">padding</span>(<span class="hl-val">8</span>.<span class="hl-func">dp</span>),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;elevation = <span class="hl-val">4</span>.<span class="hl-func">dp</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;shape = <span class="hl-type">RoundedCornerShape</span>(<span class="hl-val">12</span>.<span class="hl-func">dp</span>)<br>
+&nbsp;&nbsp;) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-com">// 2. Row organiza a foto e os textos HORIZONTALMENTE.</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-func">Row</span>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;modifier = <span class="hl-type">Modifier</span>.<span class="hl-func">padding</span>(<span class="hl-val">16</span>.<span class="hl-func">dp</span>),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;verticalAlignment = <span class="hl-type">Alignment</span>.CenterVertically<br>
+&nbsp;&nbsp;&nbsp;&nbsp;) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-com">// 3. Box simula a imagem. clip() corta o fundo em círculo.</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-func">Box</span>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;modifier = <span class="hl-type">Modifier</span>.<span class="hl-func">size</span>(<span class="hl-val">50</span>.<span class="hl-func">dp</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.<span class="hl-func">clip</span>(<span class="hl-type">CircleShape</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.<span class="hl-func">background</span>(<span class="hl-type">Color</span>.LightGray)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-com">// 4. Spacer cria o "respiro" entre a foto e o texto.</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-func">Spacer</span>(modifier = <span class="hl-type">Modifier</span>.<span class="hl-func">width</span>(<span class="hl-val">16</span>.<span class="hl-func">dp</span>))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-com">// 5. Column organiza Nome e Preço VERTICALMENTE.</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-func">Column</span>(modifier = <span class="hl-type">Modifier</span>.<span class="hl-func">weight</span>(<span class="hl-val">1f</span>)) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-func">Text</span>(text = name, fontWeight = <span class="hl-type">FontWeight</span>.Bold)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-func">Text</span>(text = <span class="hl-str">"R$ $price"</span>, color = <span class="hl-type">Color</span>.Gray)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;}<br>
+}
+                        </div>
+                    </div>
+
+                    <!-- Form Breakdown -->
+                    <div>
+                        <h3 class="text-xl font-bold text-emerald-700 mb-4 flex items-center gap-2">
+                            📝 Parte B: O Formulário Reativo (Gestão de Estado)
+                        </h3>
+                        <p class="text-sm text-slate-500 mb-6">Aqui explicamos por que a tela "sabe" que você digitou algo.</p>
+                        <div class="code-block code-font">
+<span class="hl-anno">@Composable</span><br>
+<span class="hl-key">fun</span> <span class="hl-func">RegistrationForm</span>() {<br>
+&nbsp;&nbsp;<span class="hl-com">// 1. O ESTADO: "remember" guarda o valor na memória da tela. </span><br>
+&nbsp;&nbsp;<span class="hl-com">// Se não usar remember, o valor zera toda vez que a tela redesenhar.</span><br>
+&nbsp;&nbsp;<span class="hl-key">var</span> nome <span class="hl-key">by</span> <span class="hl-func">remember</span> { <span class="hl-func">mutableStateOf</span>(<span class="hl-str">""</span>) }<br><br>
+
+&nbsp;&nbsp;<span class="hl-func">Column</span>(modifier = <span class="hl-type">Modifier</span>.<span class="hl-func">padding</span>(<span class="hl-val">16</span>.<span class="hl-func">dp</span>)) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-com">// 2. O COMPONENTE: O campo de texto lê o valor da variável 'nome'.</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-func">OutlinedTextField</span>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value = nome,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-com">// 3. A REAÇÃO: 'it' é o que o usuário digitou agora.</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="hl-com">// Quando atualizamos 'nome', o Compose força a REDESENHAR esta função.</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onValueChange = { nome = it },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;label = { <span class="hl-func">Text</span>(<span class="hl-str">"Nome do Cliente"</span>) },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;modifier = <span class="hl-type">Modifier</span>.<span class="hl-func">fillMaxWidth</span>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+&nbsp;&nbsp;}<br>
+}
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-white font-bold mb-4 uppercase tracking-widest">Fatec Garça • Mobile Engineering</p>
+            <p class="text-sm max-w-2xl mx-auto mb-8">Este material é de propriedade intelectual da disciplina de Programação de Dispositivos Móveis. Proibida a reprodução sem fins pedagógicos.</p>
+            <div class="flex justify-center gap-8">
+                <a href="#" class="hover:text-indigo-400 transition-colors">Docs Compose</a>
+                <a href="#" class="hover:text-indigo-400 transition-colors">Material Design 3</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function changeTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('tab-active');
+                btn.classList.add('text-slate-500');
+            });
+            document.getElementById('btn-' + tabId).classList.add('tab-active');
+            document.getElementById('btn-' + tabId).classList.remove('text-slate-500');
+
+            document.querySelectorAll('#content-area > div').forEach(sec => {
+                sec.classList.add('hidden');
+            });
+            document.getElementById('sec-' + tabId).classList.remove('hidden');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

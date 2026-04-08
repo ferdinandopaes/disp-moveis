@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desafio: Cardápio Interativo — Gourmet Garça</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F9F4EC;
+    --warm-white: #FDFAF5;
+    --ink: #1A1209;
+    --ink-soft: #4A3F30;
+    --ink-muted: #8C7B68;
+    --gold: #C8942A;
+    --gold-light: #F0D9A0;
+    --gold-pale: #FBF3DC;
+    --green: #2D6A4F;
+    --green-light: #D8EFE4;
+    --red: #8B2019;
+    --red-light: #F5DDD9;
+    --amber: #B05D12;
+    --amber-light: #FDECD3;
+    --border: #E3D8C5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background-color: var(--cream);
+    color: var(--ink);
+    line-height: 1.7;
+  }
+
+  /* ── CAPA ── */
+  .cover {
+    background-color: var(--ink);
+    color: var(--cream);
+    padding: 72px 48px 64px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    border: 60px solid rgba(200,148,42,0.12);
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: -40px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    border: 30px solid rgba(200,148,42,0.08);
+  }
+  .cover-inner { max-width: 760px; margin: 0 auto; position: relative; z-index: 1; }
+  .cover-tag {
+    display: inline-block;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid rgba(200,148,42,0.4);
+    padding: 5px 14px; border-radius: 2px;
+    margin-bottom: 28px;
+  }
+  .cover h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 8px;
+    color: var(--warm-white);
+  }
+  .cover h1 em {
+    font-style: italic;
+    color: var(--gold);
+  }
+  .cover .subtitle {
+    font-size: 1rem; font-weight: 300;
+    color: rgba(249,244,236,0.65);
+    margin-bottom: 40px;
+    max-width: 520px;
+  }
+  .cover-meta {
+    display: flex; flex-wrap: wrap; gap: 24px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 24px;
+    font-size: 13px; color: rgba(249,244,236,0.5);
+  }
+  .cover-meta strong { color: rgba(249,244,236,0.85); font-weight: 500; }
+
+  /* ── LAYOUT PRINCIPAL ── */
+  .page { max-width: 800px; margin: 0 auto; padding: 0 32px 80px; }
+
+  /* ── SEÇÕES ── */
+  .section { margin-top: 60px; }
+  .section-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem; font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── STORY BOX ── */
+  .story-box {
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--gold);
+    border-radius: 2px 8px 8px 2px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .story-box p {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--ink-soft);
+    line-height: 1.8;
+  }
+  .story-box .story-source {
+    margin-top: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-style: normal;
+    font-size: 12px;
+    color: var(--ink-muted);
+  }
+
+  /* ── INFO CARDS ── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .info-card {
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .info-card .label { font-size: 11px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .info-card .value { font-size: 1rem; font-weight: 500; color: var(--ink); }
+
+  /* ── OBJETIVOS ── */
+  .objetivo-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .objetivo-list li {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+  .obj-icon {
+    width: 22px; height: 22px; min-width: 22px;
+    border-radius: 50%;
+    background: var(--gold-pale);
+    border: 1px solid var(--gold-light);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--amber); font-weight: 500;
+  }
+
+  /* ── PASSOS ── */
+  .steps { display: flex; flex-direction: column; gap: 0; }
+  .step-item {
+    display: flex; gap: 0;
+    position: relative;
+  }
+  .step-item:not(:last-child) .step-line {
+    position: absolute;
+    left: 19px; top: 40px;
+    width: 2px; bottom: 0;
+    background: var(--border);
+  }
+  .step-left { display: flex; flex-direction: column; align-items: center; min-width: 40px; padding-top: 2px; }
+  .step-num {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--cream);
+    font-size: 14px; font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; position: relative; z-index: 1;
+  }
+  .step-body {
+    padding: 4px 0 32px 20px;
+    flex: 1;
+  }
+  .step-body h4 {
+    font-size: 15px; font-weight: 500;
+    margin-bottom: 6px; color: var(--ink);
+  }
+  .step-body p {
+    font-size: 13px; color: var(--ink-soft); line-height: 1.6;
+  }
+  .step-tag {
+    display: inline-block; margin-top: 8px;
+    font-size: 11px; padding: 3px 10px;
+    background: var(--gold-pale); color: var(--amber);
+    border: 1px solid var(--gold-light);
+    border-radius: 2px; font-weight: 500;
+  }
+
+  /* ── CÓDIGO ── */
+  .code-wrap {
+    background: #12100E;
+    border-radius: 10px;
+    margin: 20px 0;
+    overflow: hidden;
+    border: 1px solid #2A2218;
+  }
+  .code-header {
+    background: #1C1812;
+    padding: 10px 18px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #2A2218;
+  }
+  .code-filename { font-family: 'Fira Code', monospace; font-size: 12px; color: #8C7B68; }
+  .code-lang { font-size: 11px; color: #C8942A; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; }
+  pre {
+    padding: 20px 22px;
+    overflow-x: auto;
+    font-family: 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.65;
+    color: #D6CFC4;
+    tab-size: 4;
+  }
+  .k { color: #C68ADF; }
+  .f { color: #7DBBE8; }
+  .s { color: #A8D08D; }
+  .t { color: #E5C07B; }
+  .c { color: #5A6370; font-style: italic; }
+  .a { color: #F0C060; font-weight: 500; }
+  .n { color: #CE9178; }
+
+  /* ── RUBRICA ── */
+  .rubrica-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .rubrica-table thead tr {
+    background: var(--ink);
+    color: var(--cream);
+  }
+  .rubrica-table thead th {
+    padding: 12px 16px; text-align: left;
+    font-weight: 500; font-size: 12px;
+    letter-spacing: 0.05em;
+  }
+  .rubrica-table tbody tr { border-bottom: 1px solid var(--border); }
+  .rubrica-table tbody tr:nth-child(even) { background: var(--warm-white); }
+  .rubrica-table tbody td { padding: 12px 16px; color: var(--ink-soft); vertical-align: top; }
+  .rubrica-table tbody td:first-child { color: var(--ink); font-weight: 500; }
+  .rubrica-table tfoot tr { background: var(--gold-pale); }
+  .rubrica-table tfoot td { padding: 12px 16px; font-weight: 500; color: var(--amber); }
+  .pts-badge {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--gold);
+    font-size: 12px; font-weight: 500;
+    padding: 3px 10px; border-radius: 2px;
+  }
+
+  /* ── BÔNUS ── */
+  .bonus-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .bonus-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    background: var(--warm-white);
+  }
+  .bonus-card .bonus-level {
+    font-size: 11px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.1em; margin-bottom: 8px;
+  }
+  .level-bronze { color: #9A6B3A; }
+  .level-silver { color: #5A6878; }
+  .level-gold   { color: var(--gold); }
+  .bonus-card h4 { font-size: 14px; font-weight: 500; margin-bottom: 6px; color: var(--ink); }
+  .bonus-card p  { font-size: 13px; color: var(--ink-muted); line-height: 1.5; }
+
+  /* ── ENTREGA ── */
+  .entrega-box {
+    background: var(--green-light);
+    border: 1px solid #A8D5BE;
+    border-left: 4px solid var(--green);
+    border-radius: 2px 8px 8px 2px;
+    padding: 20px 24px;
+  }
+  .entrega-box h4 { font-size: 14px; font-weight: 500; color: var(--green); margin-bottom: 8px; }
+  .entrega-box ul { padding-left: 18px; font-size: 13px; color: #2D4A3E; line-height: 2; }
+
+  /* ── ALERTA ── */
+  .alert-box {
+    background: var(--amber-light);
+    border: 1px solid #F0C080;
+    border-left: 4px solid var(--amber);
+    border-radius: 2px 8px 8px 2px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: 13px; color: #6B3D10; line-height: 1.6;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink);
+    color: rgba(249,244,236,0.45);
+    text-align: center;
+    padding: 28px 32px;
+    font-size: 12px;
+  }
+  footer strong { color: rgba(249,244,236,0.7); }
+
+  @media (max-width: 600px) {
+    .cover { padding: 48px 24px 40px; }
+    .page { padding: 0 20px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- CAPA -->
+<div class="cover">
+  <div class="cover-inner">
+    <div class="cover-tag">Desafio Prático · Programação de Dispositivos Móveis</div>
+    <h1>Cardápio Interativo<br><em>Gourmet Garça</em></h1>
+    <p class="subtitle">Construa um app real com Jetpack Compose onde estado, recomposição e UI trabalham juntos — tudo em tempo real.</p>
+    <div class="cover-meta">
+      <span><strong>Professor:</strong> Ferdinando Paes</span>
+      <span><strong>Instituição:</strong> Fatec Garça</span>
+      <span><strong>Disciplina:</strong> Programação de Dispositivos Móveis</span>
+      <span><strong>Prazo sugerido:</strong> 1 semana</span>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- CONTEXTO -->
+  <div class="section">
+    <div class="section-label">01 — Contexto do Desafio</div>
+    <h2>A história por trás do app</h2>
+
+    <div class="story-box">
+      <p>
+        O Gourmet Garça é o restaurante mais querido da cidade. Mas há um problema: na hora do rush do almoço, os garçons perdem tempo calculando o total de cada pedido na mão, e os erros são frequentes. O dono, Seu Antônio, pediu ajuda para você — o(a) único(a) desenvolvedor(a) mobile da cidade.
+      </p>
+      <p style="margin-top: 14px;">
+        Ele não precisa de nada sofisticado: quer um app onde o garçom seleciona os pratos do pedido e vê o valor total se atualizar <em>na hora</em>, sem botão de confirmar, sem recarregar tela. Simples, rápido e confiável.
+      </p>
+      <div class="story-source">— Briefing fictício para fins didáticos</div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="label">Dificuldade</div>
+        <div class="value">⭐⭐⭐ Intermediário</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Tempo estimado</div>
+        <div class="value">3 – 5 horas</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Tecnologia</div>
+        <div class="value">Kotlin + Jetpack Compose</div>
+      </div>
+      <div class="info-card">
+        <div class="label">Entrega</div>
+        <div class="value">Projeto Android + vídeo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OBJETIVOS -->
+  <div class="section">
+    <div class="section-label">02 — O que será avaliado</div>
+    <h2>Objetivos de aprendizagem</h2>
+    <ul class="objetivo-list">
+      <li>
+        <div class="obj-icon">1</div>
+        <span>Modelar dados com <strong>data class</strong> em Kotlin para representar os pratos do cardápio.</span>
+      </li>
+      <li>
+        <div class="obj-icon">2</div>
+        <span>Criar e gerenciar <strong>estado reativo</strong> com <code>remember</code> e <code>mutableStateListOf</code>.</span>
+      </li>
+      <li>
+        <div class="obj-icon">3</div>
+        <span>Construir layouts com <strong>Column, Row, LazyColumn</strong> e aplicar <strong>Modifier</strong> adequadamente.</span>
+      </li>
+      <li>
+        <div class="obj-icon">4</div>
+        <span>Entender e observar <strong>recomposição automática</strong>: a tela atualiza sem código imperativo.</span>
+      </li>
+      <li>
+        <div class="obj-icon">5</div>
+        <span>Calcular valores dinamicamente e exibi-los formatados como moeda brasileira (R$).</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- PASSO A PASSO -->
+  <div class="section">
+    <div class="section-label">03 — Roteiro de execução</div>
+    <h2>Passo a passo para construir o app</h2>
+
+    <div class="alert-box">
+      Leia todos os passos antes de começar a codar. Entender a estrutura completa antes de escrever a primeira linha evita retrabalho.
+    </div>
+
+    <div class="steps">
+
+      <div class="step-item">
+        <div class="step-line"></div>
+        <div class="step-left"><div class="step-num">1</div></div>
+        <div class="step-body">
+          <h4>Crie o projeto no Android Studio</h4>
+          <p>Novo projeto → <em>Empty Activity</em> com Jetpack Compose habilitado. Nomeie o projeto <code>GourmetGarca</code>, package <code>br.com.fatec.gourmetgarca</code>, linguagem Kotlin, API mínima 26.</p>
+          <span class="step-tag">Android Studio</span>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-line"></div>
+        <div class="step-left"><div class="step-num">2</div></div>
+        <div class="step-body">
+          <h4>Modele os dados do cardápio</h4>
+          <p>Crie um arquivo <code>Prato.kt</code> com uma <code>data class</code> que represente cada item do menu. Defina pelo menos 6 pratos na lista de cardápio (use o código base como referência).</p>
+          <span class="step-tag">data class · Kotlin</span>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-line"></div>
+        <div class="step-left"><div class="step-num">3</div></div>
+        <div class="step-body">
+          <h4>Construa o composable da tela principal</h4>
+          <p>Crie <code>CardapioScreen()</code> como função composable. Use <code>Scaffold</code> com <code>TopAppBar</code> para o cabeçalho "Gourmet Garça". Dentro do body, use <code>Column</code> com <code>LazyColumn</code> para listar os pratos.</p>
+          <span class="step-tag">Compose · Scaffold</span>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-line"></div>
+        <div class="step-left"><div class="step-num">4</div></div>
+        <div class="step-body">
+          <h4>Gerencie o estado dos itens selecionados</h4>
+          <p>Declare <code>val selecionados = remember { mutableStateListOf&lt;Prato&gt;() }</code> dentro de <code>CardapioScreen</code>. Este é o coração reativo do app: qualquer mudança nessa lista dispara a recomposição automática.</p>
+          <span class="step-tag">remember · mutableStateListOf</span>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-line"></div>
+        <div class="step-left"><div class="step-num">5</div></div>
+        <div class="step-body">
+          <h4>Crie o composable de item do cardápio</h4>
+          <p>Componente <code>PratoItem(prato, selecionado, onToggle)</code> com um <code>Row</code> contendo <code>Checkbox</code>, nome do prato e preço formatado. O toggle adiciona ou remove o prato da lista <code>selecionados</code>.</p>
+          <span class="step-tag">Checkbox · Row · Modifier</span>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-line"></div>
+        <div class="step-left"><div class="step-num">6</div></div>
+        <div class="step-body">
+          <h4>Exiba o total calculado em tempo real</h4>
+          <p>Calcule <code>val total = selecionados.sumOf { it.preco }</code> e exiba em um <code>Card</code> fixo no rodapé da tela, formatado como moeda: <code>NumberFormat.getCurrencyInstance(Locale("pt","BR"))</code>.</p>
+          <span class="step-tag">sumOf · NumberFormat</span>
+        </div>
+      </div>
+
+      <div class="step-item">
+        <div class="step-left"><div class="step-num">7</div></div>
+        <div class="step-body">
+          <h4>Teste e valide o comportamento reativo</h4>
+          <p>Execute no emulador ou dispositivo físico. Marque e desmarque pratos e confirme que o total atualiza instantaneamente, sem nenhum botão de "calcular". Isso comprova que a recomposição está funcionando corretamente.</p>
+          <span class="step-tag">Emulador · Validação</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CÓDIGO BASE -->
+  <div class="section">
+    <div class="section-label">04 — Código base</div>
+    <h2>Estrutura inicial para referência</h2>
+
+    <p style="font-size:14px; color:var(--ink-soft); margin-bottom:18px;">
+      Use como ponto de partida. Você deve expandir, estilizar e completar o código — ele está propositalmente incompleto nos pontos que são o foco do desafio.
+    </p>
+
+    <!-- Prato.kt -->
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">Prato.kt</span>
+        <span class="code-lang">Kotlin</span>
+      </div>
+      <pre><span class="c">// Modelo de dados de um prato do cardápio</span>
+<span class="k">data class</span> <span class="t">Prato</span>(
+    <span class="k">val</span> id: <span class="t">Int</span>,
+    <span class="k">val</span> nome: <span class="t">String</span>,
+    <span class="k">val</span> descricao: <span class="t">String</span>,
+    <span class="k">val</span> preco: <span class="t">Double</span>,
+    <span class="k">val</span> categoria: <span class="t">String</span>
+)
+
+<span class="c">// Lista de cardápio — adicione pelo menos 6 pratos</span>
+<span class="k">val</span> cardapioGourmet = <span class="f">listOf</span>(
+    <span class="t">Prato</span>(<span class="n">1</span>, <span class="s">"Filé ao Molho Madeira"</span>, <span class="s">"Filé mignon grelhado"</span>, <span class="n">58.90</span>, <span class="s">"Prato Principal"</span>),
+    <span class="t">Prato</span>(<span class="n">2</span>, <span class="s">"Risoto de Funghi"</span>, <span class="s">"Arroz arbóreo cremoso"</span>, <span class="n">48.50</span>, <span class="s">"Prato Principal"</span>),
+    <span class="t">Prato</span>(<span class="n">3</span>, <span class="s">"Salmão Grelhado"</span>, <span class="s">"Com legumes salteados"</span>, <span class="n">64.00</span>, <span class="s">"Prato Principal"</span>),
+    <span class="t">Prato</span>(<span class="n">4</span>, <span class="s">"Sopa de Cebola"</span>, <span class="s">"Clássica gratinada"</span>, <span class="n">22.90</span>, <span class="s">"Entrada"</span>),
+    <span class="t">Prato</span>(<span class="n">5</span>, <span class="s">"Petit Gateau"</span>, <span class="s">"Com sorvete de creme"</span>, <span class="n">26.00</span>, <span class="s">"Sobremesa"</span>),
+    <span class="c">// TODO: adicione mais pratos aqui</span>
+)</pre>
+    </div>
+
+    <!-- CardapioScreen.kt -->
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">CardapioScreen.kt</span>
+        <span class="code-lang">Kotlin · Compose</span>
+      </div>
+      <pre><span class="a">@Composable</span>
+<span class="k">fun</span> <span class="f">CardapioScreen</span>() {
+    <span class="c">// TODO: declare aqui o estado dos itens selecionados</span>
+    <span class="k">val</span> selecionados = <span class="f">remember</span> { <span class="f">mutableStateListOf</span>&lt;<span class="t">Prato</span>&gt;() }
+
+    <span class="c">// TODO: calcule o total a partir da lista de selecionados</span>
+    <span class="k">val</span> total = <span class="c">/* ??? */</span>
+
+    <span class="t">Scaffold</span>(
+        topBar = {
+            <span class="t">TopAppBar</span>(
+                title = { <span class="t">Text</span>(<span class="s">"🍽 Gourmet Garça"</span>) }
+            )
+        }
+    ) { paddingValues ->
+        <span class="t">Column</span>(
+            modifier = <span class="t">Modifier</span>
+                .<span class="f">fillMaxSize</span>()
+                .<span class="f">padding</span>(paddingValues)
+        ) {
+            <span class="c">// Lista de pratos</span>
+            <span class="t">LazyColumn</span>(modifier = <span class="t">Modifier</span>.<span class="f">weight</span>(<span class="n">1f</span>)) {
+                <span class="f">items</span>(cardapioGourmet) { prato ->
+                    <span class="c">// TODO: chame PratoItem aqui</span>
+                }
+            }
+
+            <span class="c">// Rodapé com total</span>
+            <span class="c">// TODO: exiba o total formatado em moeda brasileira</span>
+        }
+    }
+}
+
+<span class="a">@Composable</span>
+<span class="k">fun</span> <span class="f">PratoItem</span>(
+    prato: <span class="t">Prato</span>,
+    selecionado: <span class="t">Boolean</span>,
+    onToggle: () -> <span class="t">Unit</span>
+) {
+    <span class="t">Row</span>(
+        modifier = <span class="t">Modifier</span>
+            .<span class="f">fillMaxWidth</span>()
+            .<span class="f">clickable</span> { <span class="f">onToggle</span>() }
+            .<span class="f">padding</span>(horizontal = <span class="n">16</span>.dp, vertical = <span class="n">12</span>.dp),
+        verticalAlignment = <span class="t">Alignment</span>.CenterVertically
+    ) {
+        <span class="t">Checkbox</span>(
+            checked = selecionado,
+            onCheckedChange = { <span class="f">onToggle</span>() }
+        )
+        <span class="c">// TODO: exiba nome e preço do prato</span>
+    }
+}</pre>
+    </div>
+
+    <!-- Dica: formatação de moeda -->
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-filename">Dica — Formatação de moeda</span>
+        <span class="code-lang">Kotlin</span>
+      </div>
+      <pre><span class="c">// Formata Double para "R$ 58,90"</span>
+<span class="k">val</span> formato = <span class="t">NumberFormat</span>.<span class="f">getCurrencyInstance</span>(<span class="t">Locale</span>(<span class="s">"pt"</span>, <span class="s">"BR"</span>))
+<span class="k">val</span> totalFormatado = formato.<span class="f">format</span>(total)
+
+<span class="c">// Uso em Compose:</span>
+<span class="t">Text</span>(text = <span class="s">"Total: <span class="k">$</span>totalFormatado"</span>)</pre>
+    </div>
+  </div>
+
+  <!-- RUBRICA -->
+  <div class="section">
+    <div class="section-label">05 — Avaliação</div>
+    <h2>Rubrica de correção</h2>
+
+    <table class="rubrica-table">
+      <thead>
+        <tr>
+          <th style="width:30%">Critério</th>
+          <th>Descrição</th>
+          <th style="width:80px; text-align:center">Pontos</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Data class correta</td>
+          <td>A <code>data class Prato</code> possui os campos necessários com os tipos corretos. A lista <code>cardapioGourmet</code> tem ao menos 6 itens preenchidos.</td>
+          <td style="text-align:center"><span class="pts-badge">1,5</span></td>
+        </tr>
+        <tr>
+          <td>Estado reativo funcional</td>
+          <td>Uso correto de <code>remember { mutableStateListOf() }</code>. Ao marcar/desmarcar um item, o total é atualizado imediatamente sem necessidade de botão.</td>
+          <td style="text-align:center"><span class="pts-badge">2,5</span></td>
+        </tr>
+        <tr>
+          <td>Layout com Compose</td>
+          <td>Uso correto de <code>Scaffold</code>, <code>TopAppBar</code>, <code>LazyColumn</code>, <code>Row</code> e <code>Modifier</code>. Layout responsivo e sem overflow de conteúdo.</td>
+          <td style="text-align:center"><span class="pts-badge">2,0</span></td>
+        </tr>
+        <tr>
+          <td>Componente PratoItem</td>
+          <td>Componente reutilizável com <code>Checkbox</code>, nome e preço do prato. Recebe estado e callback como parâmetros (sem lógica acoplada).</td>
+          <td style="text-align:center"><span class="pts-badge">2,0</span></td>
+        </tr>
+        <tr>
+          <td>Formatação de moeda</td>
+          <td>O total é exibido em formato brasileiro (R$ X,XX) usando <code>NumberFormat</code> ou <code>String.format</code>. Não aceita concatenação manual de "R$".</td>
+          <td style="text-align:center"><span class="pts-badge">1,0</span></td>
+        </tr>
+        <tr>
+          <td>Qualidade e organização</td>
+          <td>Código em arquivos separados, nomes em português ou inglês consistentes, sem código comentado ou imports desnecessários. Vídeo demonstra o app funcionando.</td>
+          <td style="text-align:center"><span class="pts-badge">1,0</span></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2"><strong>Total da atividade</strong></td>
+          <td style="text-align:center"><strong>10,0</strong></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="alert-box" style="margin-top: 16px;">
+      <strong>Atenção:</strong> Apps que não compilam recebem nota zero no critério de estado reativo, independentemente do restante do código. Compile e teste antes de entregar.
+    </div>
+  </div>
+
+  <!-- BÔNUS -->
+  <div class="section">
+    <div class="section-label">06 — Para quem quer ir além</div>
+    <h2>Desafios bônus</h2>
+    <p style="font-size:14px; color:var(--ink-soft); margin-bottom:20px;">Os bônus não substituem pontos da rubrica — são para quem quer se destacar e aprofundar o aprendizado.</p>
+
+    <div class="bonus-grid">
+      <div class="bonus-card">
+        <div class="bonus-level level-bronze">Bônus Bronze</div>
+        <h4>Botão "Limpar pedido"</h4>
+        <p>Adicione um botão que chama <code>selecionados.clear()</code> e desmarca todos os itens de uma vez. Testa o entendimento de operações em listas reativas.</p>
+      </div>
+      <div class="bonus-card">
+        <div class="bonus-level level-silver">Bônus Prata</div>
+        <h4>Contador de itens selecionados</h4>
+        <p>Exiba "X item(ns) selecionado(s)" dinamicamente na TopAppBar ou acima do total. Reforce o uso de expressões dentro de composables.</p>
+      </div>
+      <div class="bonus-card">
+        <div class="bonus-level level-silver">Bônus Prata</div>
+        <h4>Filtro por categoria</h4>
+        <p>Agrupe os pratos por categoria (Entrada, Prato Principal, Sobremesa) com cabeçalhos separadores na <code>LazyColumn</code> usando <code>stickyHeader</code>.</p>
+      </div>
+      <div class="bonus-card">
+        <div class="bonus-level level-gold">Bônus Ouro</div>
+        <h4>Campo de quantidade por item</h4>
+        <p>Substitua o <code>Checkbox</code> por um seletor +/- de quantidade. Recalcule o total considerando <code>quantidade × preço</code> para cada item.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENTREGA -->
+  <div class="section">
+    <div class="section-label">07 — Entrega</div>
+    <h2>Como entregar</h2>
+    <div class="entrega-box">
+      <h4>Checklist de entrega</h4>
+      <ul>
+        <li>Projeto completo compactado em <code>.zip</code> (excluir a pasta <code>build/</code>)</li>
+        <li>Vídeo de até 2 minutos mostrando o app funcionando no emulador ou dispositivo real</li>
+        <li>O vídeo deve mostrar: seleção de pratos, atualização do total em tempo real e, se aplicável, os bônus implementados</li>
+        <li>Nomeie o arquivo como: <code>NomeAluno_GourmetGarca.zip</code></li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <strong>Fatec Garça · Programação de Dispositivos Móveis</strong><br>
+  Prof. Ferdinando Paes — Desafio gerado para fins didáticos
+</footer>
+
+</body>
+</html>
